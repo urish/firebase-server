@@ -1,0 +1,30 @@
+{
+  "name": "firebase-server",
+  "version": "0.0.0",
+  "description": "Simple Firebase Server",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/urish/firebase-server"
+  },
+  "keywords": [
+    "firebase",
+    "server"
+  ],
+  "author": "Uri Shaked",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/urish/firebase-server/issues"
+  },
+  "homepage": "https://github.com/urish/firebase-server",
+  "devDependencies": {
+    "firebase": "^1.0.21"
+  },
+  "dependencies": {
+    "mockfirebase": "^0.3.0",
+    "ws": "^0.4.32"
+  }
+}
