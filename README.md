@@ -27,6 +27,7 @@ var client = new Firebase('ws://test.firebase.localhost:5000');
 client.on('value', function(snap) {
 	console.log('Got value: ', snap.value());
 });
+```
 
 Don't forget to point the host `test.firebase.localhost` to your local IP address (in `/etc/hosts` or similar).
 
