@@ -5,6 +5,14 @@ Firebase Web Socket Protocol Server. Useful for emulating the Firebase server in
 
 Copyright (C) 2013, 2014, Uri Shaked <uri@urish.org>
 
+Installation
+------------
+
+The module is not yet published on the public npm registry. However, you can install 
+it by running:
+
+`npm install --save-dev urish/firebase-server`
+
 Usage Example
 -------------
 
