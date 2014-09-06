@@ -4,7 +4,7 @@
   "description": "Simple Firebase Server",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node_modules/.bin/mocha"
   },
   "repository": {
     "type": "git",
@@ -21,7 +21,11 @@
   },
   "homepage": "https://github.com/urish/firebase-server",
   "devDependencies": {
-    "firebase": "^1.0.21"
+    "faye-websocket": "^0.7.2",
+    "firebase": "^1.0.21",
+    "lodash": "^2.4.1",
+    "mocha": "^1.21.4",
+    "mockery": "^1.4.0"
   },
   "dependencies": {
     "mockfirebase": "^0.3.0",

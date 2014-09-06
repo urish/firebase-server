@@ -5,6 +5,9 @@ Firebase Web Socket Protocol Server. Useful for emulating the Firebase server in
 
 Copyright (C) 2013, 2014, Uri Shaked <uri@urish.org>
 
+[![Build Status](https://travis-ci.org/urish/firebase-server.png?branch=master)](https://travis-ci.org/urish/firebase-server)
+
+
 Installation
 ------------
 
