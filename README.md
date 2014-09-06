@@ -41,6 +41,13 @@ client.on('value', function(snap) {
 
 Don't forget to point the host `test.firebase.localhost` to your local IP address (in `/etc/hosts` or similar).
 
+### FirebaseServer methods
+
+FirebaseServer instances have the following API:
+
+* `close()` - Stops the server (closes the server socket) 
+* `getData()` - Returns a copy of the current data stored in the server
+
 ### Debug logging
 
 You can enable debug logging by calling the `enableLogging()` method:

@@ -21,11 +21,11 @@ function FirebaseServer(port, name, data) {
 	this.name = name || 'mock.firebase.server';
 	this.mockFb = new mockfirebase.MockFirebase('https://' + this.name + '/', data);
 
-	var wss = new WebSocketServer({
+	this._wss = new WebSocketServer({
 		port: port
 	});
 
-	wss.on('connection', this.handleConnection.bind(this));
+	this._wss.on('connection', this.handleConnection.bind(this));
 	_log('Listening for connections on port ' + port);
 }
 
@@ -64,7 +64,7 @@ FirebaseServer.prototype = {
 					});
 				}
 				if (parsed.d.a === 'p') {
-					console.log('Client update' + path);
+					_log('Client update' + path);
 					fbRef.set(parsed.d.b.d, function () {
 						// TODO check for failure
 						send({d: {r: requestId, b: {s: 'ok', d: ''}}, t: 'd'});
@@ -75,6 +75,14 @@ FirebaseServer.prototype = {
 		}.bind(this));
 
 		send({d: { t: 'h', d: {ts: new Date().getTime(), v: '5', h: this.name, s: ''}}, t: 'c' });
+	},
+
+	getData: function() {
+		return this.mockFb.getData();
+	},
+
+	close: function() {
+		this._wss.close();
 	}
 };
 
