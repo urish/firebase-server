@@ -1,3 +1,7 @@
+/* License: MIT.
+ * Copyright (C) 2013, 2014, Uri Shaked.
+ */
+
 'use strict';
 
 /* global beforeEach, describe, it */
