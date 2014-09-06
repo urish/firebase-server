@@ -20,7 +20,11 @@ FirebaseServer.prototype = {
 
 		function send(message) {
 			console.log('sending', message);
-			ws.send(JSON.stringify(message));
+			try {
+				ws.send(JSON.stringify(message));
+			} catch (e) {
+				console.warn('send failed', e);
+			}
 		}
 
 		ws.on('message', function (data) {
@@ -42,7 +46,6 @@ FirebaseServer.prototype = {
 							send({d: {a: 'd', b: {p: path, d: snap.val(), t: null}}, t: 'd'});
 						}
 					});
-					this.mockFb.flush();
 				}
 				if (parsed.d.a === 'p') {
 					console.log('update', path);
@@ -51,6 +54,7 @@ FirebaseServer.prototype = {
 						send({d: {r: requestId, b: {s: 'ok', d: ''}}, t: 'd'});
 					});
 				}
+				this.mockFb.flush();
 			}
 		}.bind(this));
 
