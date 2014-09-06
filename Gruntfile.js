@@ -19,14 +19,26 @@ module.exports = function (grunt) {
 			]
 		},
 		mochacov: {
-			options: {
-				reporter: 'spec',
-				coveralls: (process.env.TRAVIS === 'true')
+			all: ['test/*.spec.js'],
+			test: {
+				options: {
+					reporter: 'spec'
+				}
 			},
-			all: ['test/*.spec.js']
+			coverage: {
+				options: {
+					reporter: 'mocha-lcov-reporter',
+					coveralls: true
+				}
+			}
 		}
 	});
 
-	grunt.registerTask('test', ['jshint', 'mochacov']);
+	var testTasks = ['jshint', 'mochacov:test'];
+	if (process.env.TRAVIS === 'true') {
+		testTasks.push('mochacov:coverage');
+	}
+	grunt.registerTask('test', testTasks);
+
 	grunt.registerTask('default', ['test']);
 };
