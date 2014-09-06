@@ -28,7 +28,7 @@ beforeEach(function () {
 		warnOnUnregistered: false
 	});
 
-	Firebase = require('Firebase');
+	Firebase = require('firebase');
 });
 
 
