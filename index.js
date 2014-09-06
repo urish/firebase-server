@@ -5,7 +5,7 @@ var mockfirebase = require('mockfirebase');
 
 function FirebaseServer(port, name, data) {
 	this.name = name || 'mock.firebase.server';
-	this.mockFb = new mockfirebase.MockFirebase('https://' + name + '/', data);
+	this.mockFb = new mockfirebase.MockFirebase('https://' + this.name + '/', data);
 
 	var wss = new WebSocketServer({
 		port: port
