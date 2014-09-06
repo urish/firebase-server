@@ -41,6 +41,17 @@ client.on('value', function(snap) {
 
 Don't forget to point the host `test.firebase.localhost` to your local IP address (in `/etc/hosts` or similar).
 
+### Debug logging
+
+You can enable debug logging by calling the `enableLogging()` method:
+
+```js
+var FirebaseServer = require('firebase-server');
+
+FirebaseServer.enableLogging(true);
+// Create a FirebaseServer instance, etc.
+```
+
 License
 ----
 
