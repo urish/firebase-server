@@ -21,7 +21,7 @@ module.exports = function (grunt) {
 		mochacov: {
 			options: {
 				reporter: 'spec',
-				coveralls: typeof process.env.COVERALLS_SERVICE_NAME !== 'undefined'
+				coveralls: (process.env.TRAVIS === 'true')
 			},
 			all: ['test/*.spec.js']
 		}
