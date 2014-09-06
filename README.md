@@ -8,10 +8,9 @@ Copyright (C) 2013, 2014, Uri Shaked <uri@urish.org>
 Installation
 ------------
 
-The module is not yet published on the public npm registry. However, you can install 
-it by running:
+You can install firebase-server through npm:
 
-`npm install --save-dev urish/firebase-server`
+`npm install --save-dev firebase-server`
 
 Usage Example
 -------------
