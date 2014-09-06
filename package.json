@@ -20,6 +20,11 @@
     "url": "https://github.com/urish/firebase-server/issues"
   },
   "homepage": "https://github.com/urish/firebase-server",
+  "config": {
+    "blanket": {
+      "pattern": "index.js"
+    }
+  },
   "devDependencies": {
     "faye-websocket": "^0.7.2",
     "firebase": "^1.0.21",
