@@ -1,5 +1,5 @@
 /*
- * firebase-server 0.0.2
+ * firebase-server 0.1.0
  * License: MIT.
  * Copyright (C) 2013, 2014, Uri Shaked.
  */
@@ -53,7 +53,7 @@ FirebaseServer.prototype = {
 				var path = parsed.d.b.p.substr(1);
 				var requestId = parsed.d.r;
 				var fbRef = path ? this.mockFb.child(path) : this.mockFb;
-				if (parsed.d.a === 'l') {
+				if (parsed.d.a === 'l' || parsed.d.a === 'q') {
 					_log('Client listen ' + path);
 					// listen
 					send({d: {r: requestId, b: {s: 'ok', d: ''}}, t: 'd'});
@@ -64,7 +64,7 @@ FirebaseServer.prototype = {
 					});
 				}
 				if (parsed.d.a === 'p') {
-					_log('Client update' + path);
+					_log('Client update ' + path);
 					fbRef.set(parsed.d.b.d, function () {
 						// TODO check for failure
 						send({d: {r: requestId, b: {s: 'ok', d: ''}}, t: 'd'});
