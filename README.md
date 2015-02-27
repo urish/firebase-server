@@ -3,7 +3,7 @@ firebase-server
 
 Firebase Web Socket Protocol Server. Useful for emulating the Firebase server in tests.
 
-Copyright (C) 2013, 2014, Uri Shaked <uri@urish.org>
+Copyright (C) 2013, 2014, 2015, Uri Shaked <uri@urish.org>
 
 [![Build Status](https://travis-ci.org/urish/firebase-server.png?branch=master)](https://travis-ci.org/urish/firebase-server)
 [![Coverage Status](https://coveralls.io/repos/urish/firebase-server/badge.png)](https://coveralls.io/r/urish/firebase-server)
@@ -35,7 +35,7 @@ After running this server, you can create a Firebase client instance that connec
 ```js
 var client = new Firebase('ws://test.firebase.localhost:5000');
 client.on('value', function(snap) {
-	console.log('Got value: ', snap.value());
+	console.log('Got value: ', snap.val());
 });
 ```
 
