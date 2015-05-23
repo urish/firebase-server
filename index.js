@@ -50,7 +50,10 @@ FirebaseServer.prototype = {
 			}
 			var parsed = JSON.parse(data);
 			if (parsed.t === 'd') {
-				var path = parsed.d.b.p.substr(1);
+				var path;
+				if (typeof parsed.d.b.p !== 'undefined') {
+					path = parsed.d.b.p.substr(1);
+				}
 				var requestId = parsed.d.r;
 				var fbRef = path ? this.mockFb.child(path) : this.mockFb;
 				if (parsed.d.a === 'l' || parsed.d.a === 'q') {
