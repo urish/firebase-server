@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1 - 2015-05-23
+
+- Fix a bug with supporting Firebase client library 2.2.4+ (fixes [#1](https://github.com/urish/firebase-server/issues/1))
+
 ## 0.1.0 - 2014-11-21
 
 - Firebase 2.0 Support
