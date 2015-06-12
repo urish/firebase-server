@@ -44,6 +44,32 @@ FirebaseServer.prototype = {
 			}
 		}
 
+		function pushData(path, data) {
+			send({d: {a: 'd', b: {p: path, d: data, t: null}}, t: 'd'});
+		}
+
+		function handleListen(requestId, path, fbRef) {
+			_log('Client listen ' + path);
+			var currentData = fbRef.getData();
+			if ((typeof currentData !== 'undefined') && (currentData !== null)) {
+				pushData(path, fbRef.getData());
+			}
+			send({d: {r: requestId, b: {s: 'ok', d: ''}}, t: 'd'});
+			fbRef.on('value', function (snap) {
+				if (snap.val()) {
+					pushData(path, fbRef.getData());
+				}
+			});
+		}
+
+		function handleUpdate(requestId, path, fbRef, newData) {
+			_log('Client update ' + path);
+			fbRef.set(newData, function () {
+				// TODO check for failure
+				send({d: {r: requestId, b: {s: 'ok', d: ''}}, t: 'd'});
+			});
+		}
+
 		ws.on('message', function (data) {
 			_log('Client message: ' + data);
 			if (data === 0) {
@@ -58,21 +84,10 @@ FirebaseServer.prototype = {
 				var requestId = parsed.d.r;
 				var fbRef = path ? this.mockFb.child(path) : this.mockFb;
 				if (parsed.d.a === 'l' || parsed.d.a === 'q') {
-					_log('Client listen ' + path);
-					// listen
-					send({d: {r: requestId, b: {s: 'ok', d: ''}}, t: 'd'});
-					fbRef.on('value', function (snap) {
-						if (snap.val()) {
-							send({d: {a: 'd', b: {p: path, d: snap.val(), t: null}}, t: 'd'});
-						}
-					});
+					handleListen(requestId, path, fbRef);
 				}
 				if (parsed.d.a === 'p') {
-					_log('Client update ' + path);
-					fbRef.set(parsed.d.b.d, function () {
-						// TODO check for failure
-						send({d: {r: requestId, b: {s: 'ok', d: ''}}, t: 'd'});
-					});
+					handleUpdate(requestId, path, fbRef, parsed.d.b.d);
 				}
 			}
 		}.bind(this));

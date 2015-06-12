@@ -89,4 +89,19 @@ describe('Firebase Server', function () {
 			done();
 		});
 	});
+
+	it('should return the correct value for child nodes', function (done) {
+		server = new FirebaseServer(PORT, 'localhost:' + PORT,  {
+			states: {
+				CA: 'California',
+				AL: 'Alabama',
+				KY: 'Kentucky'
+			}
+		});
+		var client = new Firebase(newServerUrl());
+		client.child('states').child('CA').once('value', function (snap) {
+			assert.equal(snap.val(), 'California');
+			done();
+		});
+	});
 });
