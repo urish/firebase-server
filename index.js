@@ -20,6 +20,7 @@ function _log(message) {
 function FirebaseServer(port, name, data) {
 	this.name = name || 'mock.firebase.server';
 	this.mockFb = new mockfirebase.MockFirebase('https://' + this.name + '/', data);
+	this.mockFb.autoFlush(1);
 
 	this._wss = new WebSocketServer({
 		port: port
@@ -73,7 +74,6 @@ FirebaseServer.prototype = {
 						send({d: {r: requestId, b: {s: 'ok', d: ''}}, t: 'd'});
 					});
 				}
-				this.mockFb.flush();
 			}
 		}.bind(this));
 
