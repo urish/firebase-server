@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.0 - 2015-06-12
+
+- Upgrade `MockFirebase` to 0.11.0, as well as other dependencies.
+- Bugfix: Value callbacks were always triggered with null first ([#2](https://github.com/urish/firebase-server/issues/2))
+
 ## 0.1.1 - 2015-05-23
 
 - Fix a bug with supporting Firebase client library 2.2.4+ (fixes [#1](https://github.com/urish/firebase-server/issues/1))
