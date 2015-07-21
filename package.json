@@ -27,7 +27,7 @@
     }
   },
   "devDependencies": {
-    "faye-websocket": "^0.9.4",
+    "faye-websocket": "0.10.0",
     "firebase": "^2.2.5",
     "grunt": "^0.4.5",
     "grunt-contrib-jshint": "^0.11.2",
