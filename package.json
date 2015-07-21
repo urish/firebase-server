@@ -22,7 +22,7 @@
   "homepage": "https://github.com/urish/firebase-server",
   "config": {
     "blanket": {
-      "pattern": "index.js",
+      "pattern": ["lib", "index.js"],
       "data-cover-never": "node_modules"
     }
   },
