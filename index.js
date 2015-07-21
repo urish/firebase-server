@@ -64,6 +64,14 @@ FirebaseServer.prototype = {
 
 		function handleUpdate(requestId, path, fbRef, newData) {
 			_log('Client update ' + path);
+			fbRef.update(newData, function () {
+				// TODO check for failure
+				send({d: {r: requestId, b: {s: 'ok', d: ''}}, t: 'd'});
+			});
+		}
+
+		function handleSet(requestId, path, fbRef, newData) {
+			_log('Client set ' + path);
 			fbRef.set(newData, function () {
 				// TODO check for failure
 				send({d: {r: requestId, b: {s: 'ok', d: ''}}, t: 'd'});
@@ -86,8 +94,11 @@ FirebaseServer.prototype = {
 				if (parsed.d.a === 'l' || parsed.d.a === 'q') {
 					handleListen(requestId, path, fbRef);
 				}
-				if (parsed.d.a === 'p') {
+				if (parsed.d.a === 'm') {
 					handleUpdate(requestId, path, fbRef, parsed.d.b.d);
+				}
+				if (parsed.d.a === 'p') {
+					handleSet(requestId, path, fbRef, parsed.d.b.d);
 				}
 			}
 		}.bind(this));

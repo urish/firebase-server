@@ -39,7 +39,7 @@ describe('Firebase Server', function () {
 		Firebase = require('firebase');
 	});
 
-	afterEach(function() {
+	afterEach(function () {
 		if (server) {
 			server.close();
 			server = null;
@@ -76,22 +76,8 @@ describe('Firebase Server', function () {
 		});
 	});
 
-	it('should update server data after calling `set()` from a client', function (done) {
-		server = new FirebaseServer(PORT);
-		var client = new Firebase(newServerUrl());
-		client.set({
-			'foo': 'bar'
-		}, function(err) {
-			assert.ok(!err, 'set() call returned an error');
-			assert.deepEqual(server.getData(), {
-				'foo': 'bar'
-			});
-			done();
-		});
-	});
-
 	it('should return the correct value for child nodes', function (done) {
-		server = new FirebaseServer(PORT, 'localhost:' + PORT,  {
+		server = new FirebaseServer(PORT, 'localhost:' + PORT, {
 			states: {
 				CA: 'California',
 				AL: 'Alabama',
@@ -102,6 +88,50 @@ describe('Firebase Server', function () {
 		client.child('states').child('CA').once('value', function (snap) {
 			assert.equal(snap.val(), 'California');
 			done();
+		});
+	});
+
+	describe('#update', function () {
+		it('should update the given child', function (done) {
+			server = new FirebaseServer(PORT, 'localhost:' + PORT, {
+				states: {
+					CA: 'California',
+					AL: 'Alabama',
+					KY: 'Kentucky'
+				}
+			});
+			var client = new Firebase(newServerUrl());
+			client.child('states').update({
+				NY: 'New York',
+				CA: 'Toronto'
+			}, function (err) {
+				assert.ok(!err, 'update() call returned an error');
+				assert.deepEqual(server.getData(), {
+					states: {
+						NY: 'New York',
+						CA: 'Toronto',
+						AL: 'Alabama',
+						KY: 'Kentucky'
+					}
+				});
+				done();
+			});
+		});
+	});
+
+	describe('#set', function () {
+		it('should update server data after calling `set()` from a client', function (done) {
+			server = new FirebaseServer(PORT);
+			var client = new Firebase(newServerUrl());
+			client.set({
+				'foo': 'bar'
+			}, function (err) {
+				assert.ok(!err, 'set() call returned an error');
+				assert.deepEqual(server.getData(), {
+					'foo': 'bar'
+				});
+				done();
+			});
 		});
 	});
 });
