@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.0 - 2015-07-21
+
+- Implement `update()` (fixes [#5](https://github.com/urish/firebase-server/issues/5))
+- Bugfix: `remove()` triggers two value events (fixes [#6](https://github.com/urish/firebase-server/issues/6))
+
 ## 0.2.0 - 2015-06-12
 
 - Upgrade `MockFirebase` to 0.11.0, as well as other dependencies.

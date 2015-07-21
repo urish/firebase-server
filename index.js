@@ -74,6 +74,7 @@ FirebaseServer.prototype = {
 			_log('Client set ' + path);
 			fbRef.set(newData, function () {
 				// TODO check for failure
+				pushData(path, fbRef.getData());
 				send({d: {r: requestId, b: {s: 'ok', d: ''}}, t: 'd'});
 			});
 		}

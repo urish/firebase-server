@@ -134,4 +134,39 @@ describe('Firebase Server', function () {
 			});
 		});
 	});
+
+	describe('#remove', function () {
+		it('should remove the child', function (done) {
+			server = new FirebaseServer(PORT, 'localhost:' + PORT, {
+				'child1': 1,
+				'child2': 5
+			});
+			var client = new Firebase(newServerUrl());
+			client.child('child1').remove(function (err) {
+				assert.ok(!err, 'remove() call returned an error');
+				assert.deepEqual(server.getData(), {
+					'child2': 5
+				});
+				done();
+			});
+		});
+
+		it('should trigger a "value" event with null', function (done) {
+			server = new FirebaseServer(PORT, 'localhost:' + PORT, {
+				'child1': 1,
+				'child2': 5
+			});
+			var client = new Firebase(newServerUrl());
+			var lastValue;
+			client.child('child1').on('value', function(snap) {
+				lastValue = snap.val();
+			});
+			client.child('child1').remove(function(err) {
+				assert.ok(!err, 'remove() call returned an error');
+				assert.deepEqual(lastValue, null);
+				done();
+			});
+		});
+
+	});
 });
