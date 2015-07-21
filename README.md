@@ -41,6 +41,8 @@ client.on('value', function(snap) {
 
 Don't forget to point the host `test.firebaseio.com` to your local IP address (in `/etc/hosts` or similar).
 
+For more information, read the [blog post in the offical Firebase blog](https://www.firebase.com/blog/2015-04-24-end-to-end-testing-firebase-server.html).
+
 ### FirebaseServer methods
 
 FirebaseServer instances have the following API:
