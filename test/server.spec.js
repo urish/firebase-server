@@ -1,5 +1,5 @@
 /* License: MIT.
- * Copyright (C) 2013, 2014, Uri Shaked.
+ * Copyright (C) 2013, 2014, 2015, Uri Shaked.
  */
 
 'use strict';
@@ -158,15 +158,90 @@ describe('Firebase Server', function () {
 			});
 			var client = new Firebase(newServerUrl());
 			var lastValue;
-			client.child('child1').on('value', function(snap) {
+			client.child('child1').on('value', function (snap) {
 				lastValue = snap.val();
 			});
-			client.child('child1').remove(function(err) {
+			client.child('child1').remove(function (err) {
 				assert.ok(!err, 'remove() call returned an error');
 				assert.deepEqual(lastValue, null);
 				done();
 			});
 		});
+	});
 
+	describe('#transaction', function () {
+		it('should save new data to the given location', function (done) {
+			server = new FirebaseServer(PORT, 'localhost:' + PORT, {});
+			var client = new Firebase(newServerUrl());
+			client.child('users').child('wilma').transaction(function (currentData) {
+				assert.equal(currentData, null);
+				return {name: {first: 'Wilma', last: 'Flintstone'}};
+			}, function (error, committed, snapshot) {
+				assert.equal(error, null);
+				assert.equal(committed, true);
+				assert.deepEqual(snapshot.val(), {name: {first: 'Wilma', last: 'Flintstone'}});
+				assert.deepEqual(server.getData(), {users: {wilma: {name: {first: 'Wilma', last: 'Flintstone'}}}});
+				done();
+			});
+		});
+
+		it('should return existing data inside the updateFunction function', function (done) {
+			server = new FirebaseServer(PORT, 'localhost:' + PORT, {
+				users: {
+					uri: {
+						name: {
+							first: 'Uri',
+							last: 'Shaked',
+						}
+					}
+				}
+			});
+			var client = new Firebase(newServerUrl());
+
+			var firstTime = true;
+			client.child('users').child('uri').transaction(function (currentData) {
+				if (firstTime) {
+					assert.deepEqual(currentData, null);
+					firstTime = false;
+					return 'first-time';
+				} else {
+					assert.deepEqual(currentData, {name: {first: 'Uri', last: 'Shaked'}});
+					return 'second-time';
+				}
+			}, function (error, committed, snapshot) {
+				assert.equal(error, null);
+				assert.equal(committed, true);
+				assert.deepEqual(snapshot.val(), 'second-time');
+				done();
+			});
+		});
+
+		it('should not update the data on server if the transaction was aborted', function (done) {
+			server = new FirebaseServer(PORT, 'localhost:' + PORT, {
+				users: {
+					uri: {
+						name: {
+							first: 'Uri',
+							last: 'Shaked',
+						}
+					}
+				}
+			});
+			var client = new Firebase(newServerUrl());
+
+			client.child('users').child('uri').transaction(function (currentData) {
+				if (currentData === null) {
+					return 'new-data';
+				} else {
+					return;
+				}
+			}, function (error, committed, snapshot) {
+				assert.equal(error, null);
+				assert.equal(committed, false);
+				assert.deepEqual(snapshot.val(), {name: {first: 'Uri', last: 'Shaked'}});
+				assert.deepEqual(server.getData(), {users: {uri: {name: {first: 'Uri', last: 'Shaked'}}}});
+				done();
+			});
+		});
 	});
 });

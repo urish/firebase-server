@@ -8,6 +8,7 @@
 
 var WebSocketServer = require('ws').Server;
 var mockfirebase = require('mockfirebase');
+var firebaseHash = require('./lib/firebaseHash');
 
 var loggingEnabled = false;
 
@@ -70,8 +71,17 @@ FirebaseServer.prototype = {
 			});
 		}
 
-		function handleSet(requestId, path, fbRef, newData) {
+		function handleSet(requestId, path, fbRef, newData, hash) {
 			_log('Client set ' + path);
+			if (typeof hash !== 'undefined') {
+				var calculatedHash = firebaseHash(fbRef.getData());
+				if (hash !== calculatedHash) {
+					pushData(path, fbRef.getData());
+					send({d: {r: requestId, b: {s: 'datastale', d: 'Transaction hash does not match'}}, t: 'd'});
+					return;
+				}
+			}
+
 			fbRef.set(newData, function () {
 				// TODO check for failure
 				pushData(path, fbRef.getData());
@@ -99,19 +109,19 @@ FirebaseServer.prototype = {
 					handleUpdate(requestId, path, fbRef, parsed.d.b.d);
 				}
 				if (parsed.d.a === 'p') {
-					handleSet(requestId, path, fbRef, parsed.d.b.d);
+					handleSet(requestId, path, fbRef, parsed.d.b.d, parsed.d.b.h);
 				}
 			}
 		}.bind(this));
 
-		send({d: { t: 'h', d: {ts: new Date().getTime(), v: '5', h: this.name, s: ''}}, t: 'c' });
+		send({d: {t: 'h', d: {ts: new Date().getTime(), v: '5', h: this.name, s: ''}}, t: 'c'});
 	},
 
-	getData: function() {
+	getData: function () {
 		return this.mockFb.getData();
 	},
 
-	close: function() {
+	close: function () {
 		this._wss.close();
 	}
 };
