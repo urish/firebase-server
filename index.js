@@ -55,7 +55,7 @@ FirebaseServer.prototype = {
 			if ((typeof currentData !== 'undefined') && (currentData !== null)) {
 				pushData(path, fbRef.getData());
 			}
-			send({d: {r: requestId, b: {s: 'ok', d: ''}}, t: 'd'});
+			send({d: {r: requestId, b: {s: 'ok', d: {}}}, t: 'd'});
 			fbRef.on('value', function (snap) {
 				if (snap.val()) {
 					pushData(path, fbRef.getData());
@@ -67,7 +67,7 @@ FirebaseServer.prototype = {
 			_log('Client update ' + path);
 			fbRef.update(newData, function () {
 				// TODO check for failure
-				send({d: {r: requestId, b: {s: 'ok', d: ''}}, t: 'd'});
+				send({d: {r: requestId, b: {s: 'ok', d: {}}}, t: 'd'});
 			});
 		}
 
@@ -85,7 +85,7 @@ FirebaseServer.prototype = {
 			fbRef.set(newData, function () {
 				// TODO check for failure
 				pushData(path, fbRef.getData());
-				send({d: {r: requestId, b: {s: 'ok', d: ''}}, t: 'd'});
+				send({d: {r: requestId, b: {s: 'ok', d: {}}}, t: 'd'});
 			});
 		}
 
