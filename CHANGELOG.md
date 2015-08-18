@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.1 - 2015-08-18
+
+- Bugfix: Wire protocol does not match Firebase server (fixes [#9](https://github.com/urish/firebase-server/issues/9), contributed by [azell](https://github.com/azell))
+
 ## 0.3.0 - 2015-07-21
 
 - Implement `update()` (fixes [#5](https://github.com/urish/firebase-server/issues/5))
