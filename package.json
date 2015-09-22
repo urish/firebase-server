@@ -22,7 +22,10 @@
   "homepage": "https://github.com/urish/firebase-server",
   "config": {
     "blanket": {
-      "pattern": ["lib", "index.js"],
+      "pattern": [
+        "lib",
+        "index.js"
+      ],
       "data-cover-never": "node_modules"
     }
   },
@@ -38,7 +41,9 @@
     "mockery": "^1.4.0"
   },
   "dependencies": {
+    "lodash": "^3.10.1",
     "mockfirebase": "^0.11.0",
+    "targaryen": "^1.1.4",
     "ws": "0.7.2"
   }
 }

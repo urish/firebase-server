@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.0 - TBD
+
+- Basic support for Firebase Security ruels
+
 ## 0.3.1 - 2015-08-18
 
 - Bugfix: Wire protocol does not match Firebase server (fixes [#9](https://github.com/urish/firebase-server/issues/9), contributed by [azell](https://github.com/azell))

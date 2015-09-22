@@ -6,8 +6,11 @@
 
 'use strict';
 
+var _ = require('lodash');
 var WebSocketServer = require('ws').Server;
 var mockfirebase = require('mockfirebase');
+var Ruleset = require('targaryen/lib/Ruleset');
+var RuleDataSnapshot = require('targaryen/lib/rule-data-snapshot');
 var firebaseHash = require('./lib/firebaseHash');
 
 var loggingEnabled = false;
@@ -34,6 +37,7 @@ function FirebaseServer(port, name, data) {
 FirebaseServer.prototype = {
 	handleConnection: function (ws) {
 		_log('New connection from ' + ws._socket.remoteAddress + ':' + ws._socket.remotePort);
+		var server = this;
 
 		function send(message) {
 			var payload = JSON.stringify(message);
@@ -49,8 +53,23 @@ FirebaseServer.prototype = {
 			send({d: {a: 'd', b: {p: path, d: data, t: null}}, t: 'd'});
 		}
 
+		function permissionDenied(requestId) {
+			send({d: {r: requestId, b: {s: 'permission_denied', d: 'Permission denied'}}, t: 'd'});
+		}
+
 		function handleListen(requestId, path, fbRef) {
 			_log('Client listen ' + path);
+
+			if (server._ruleset) {
+				var dataSnap = new RuleDataSnapshot(RuleDataSnapshot.convert(fbRef.root().getData()));
+				var result = server._ruleset.tryRead(path, dataSnap);
+				if (!result.allowed) {
+					_log('Permission denied for client to read from ' + path + ': ' + result.info);
+					permissionDenied(requestId);
+				}
+				return;
+			}
+
 			var currentData = fbRef.getData();
 			if ((typeof currentData !== 'undefined') && (currentData !== null)) {
 				pushData(path, fbRef.getData());
@@ -65,6 +84,18 @@ FirebaseServer.prototype = {
 
 		function handleUpdate(requestId, path, fbRef, newData) {
 			_log('Client update ' + path);
+
+			if (server._ruleset) {
+				var dataSnap = new RuleDataSnapshot(RuleDataSnapshot.convert(fbRef.root().getData()));
+				var mergedData = _.assign(fbRef.getData(), newData);
+				var result = server._ruleset.tryWrite(path, dataSnap, mergedData);
+				if (!result.allowed) {
+					_log('Permission denied for client to write to ' + path + ': ' + result.info);
+					permissionDenied(requestId);
+				}
+				return;
+			}
+
 			fbRef.update(newData, function () {
 				// TODO check for failure
 				send({d: {r: requestId, b: {s: 'ok', d: {}}}, t: 'd'});
@@ -73,6 +104,17 @@ FirebaseServer.prototype = {
 
 		function handleSet(requestId, path, fbRef, newData, hash) {
 			_log('Client set ' + path);
+
+			if (server._ruleset) {
+				var dataSnap = new RuleDataSnapshot(RuleDataSnapshot.convert(fbRef.root().getData()));
+				var result = server._ruleset.tryWrite(path, dataSnap, newData);
+				if (!result.allowed) {
+					_log('Permission denied for client to write to ' + path + ': ' + result.info);
+					permissionDenied(requestId);
+				}
+				return;
+			}
+
 			if (typeof hash !== 'undefined') {
 				var calculatedHash = firebaseHash(fbRef.getData());
 				if (hash !== calculatedHash) {
@@ -115,6 +157,10 @@ FirebaseServer.prototype = {
 		}.bind(this));
 
 		send({d: {t: 'h', d: {ts: new Date().getTime(), v: '5', h: this.name, s: ''}}, t: 'c'});
+	},
+
+	setRules: function (rules) {
+		this._ruleset = new Ruleset(rules);
 	},
 
 	getData: function () {

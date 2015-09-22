@@ -244,4 +244,72 @@ describe('Firebase Server', function () {
 			});
 		});
 	});
+
+	describe('security rules', function() {
+		it('should forbid reading data when there is no read permission', function(done) {
+			server = new FirebaseServer(PORT, 'localhost:' + PORT, {
+				Firebase: 'great!'
+			});
+			server.setRules({
+				rules: {
+					'.read': false
+				}
+			});
+
+			var client = new Firebase(newServerUrl());
+			client.on('value', function () {
+				client.off('value');
+				done(new Error('Client has read permission despite security rules'));
+			}, function(err) {
+				assert.equal(err.code, 'PERMISSION_DENIED');
+				done();
+			});
+		});
+
+		it('should forbid writing when there is no write permission', function(done) {
+			server = new FirebaseServer(PORT, 'localhost:' + PORT, {
+				Firebase: 'great!'
+			});
+			server.setRules({
+				rules: {
+					'.write': false
+				}
+			});
+
+			var client = new Firebase(newServerUrl());
+			client.set({
+				'foo': 'bar'
+			}, function (err) {
+				assert.ok(err, 'set() should have returned an error');
+				assert.equal(err.code, 'PERMISSION_DENIED');
+				assert.deepEqual(server.getData(), {
+					Firebase: 'great!'
+				});
+				done();
+			});
+		});
+
+		it('should forbid updates when there is no write permission', function(done) {
+			server = new FirebaseServer(PORT, 'localhost:' + PORT, {
+				Firebase: 'great!'
+			});
+			server.setRules({
+				rules: {
+					'.write': false
+				}
+			});
+
+			var client = new Firebase(newServerUrl());
+			client.update({
+				'foo': 'bar'
+			}, function (err) {
+				assert.ok(err, 'update() should have returned an error');
+				assert.equal(err.code, 'PERMISSION_DENIED');
+				assert.deepEqual(server.getData(), {
+					Firebase: 'great!'
+				});
+				done();
+			});
+		});
+	});
 });
