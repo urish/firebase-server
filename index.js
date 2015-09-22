@@ -9,7 +9,7 @@
 var _ = require('lodash');
 var WebSocketServer = require('ws').Server;
 var mockfirebase = require('mockfirebase');
-var Ruleset = require('targaryen/lib/Ruleset');
+var Ruleset = require('targaryen/lib/ruleset');
 var RuleDataSnapshot = require('targaryen/lib/rule-data-snapshot');
 var firebaseHash = require('./lib/firebaseHash');
 
