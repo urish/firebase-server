@@ -8,10 +8,12 @@
 
 var _ = require('lodash');
 var WebSocketServer = require('ws').Server;
-var mockfirebase = require('mockfirebase');
 var Ruleset = require('targaryen/lib/ruleset');
 var RuleDataSnapshot = require('targaryen/lib/rule-data-snapshot');
 var firebaseHash = require('./lib/firebaseHash');
+var Promise = require('bluebird');  // jshint ignore:line
+var firebaseCopy = require('firebase-copy');
+var co = require('co');
 
 var loggingEnabled = false;
 
@@ -20,11 +22,33 @@ function _log(message) {
 		console.log('[firebase-server] ' + message);
 	}
 }
+function getSnap(ref) {
+	return new Promise(function (resolve) {
+		ref.once('value', function (snap) {
+			resolve(snap);
+		});
+	});
+}
+
+function getValue(ref) {
+	return getSnap(ref).then(function (snap) {
+		return snap.val();
+	});
+}
+
+function getExport(ref) {
+	return getSnap(ref).then(function (snap) {
+		return snap.exportVal();
+	});
+}
 
 function FirebaseServer(port, name, data) {
+	this.Firebase = firebaseCopy();
 	this.name = name || 'mock.firebase.server';
-	this.mockFb = new mockfirebase.MockFirebase('https://' + this.name + '/', data);
-	this.mockFb.autoFlush(1);
+	this.Firebase.goOffline();
+	this.baseRef = new this.Firebase('ws://fakeserver.firebaseio.com');
+
+	this.baseRef.set(data || null);
 
 	this._wss = new WebSocketServer({
 		port: port
@@ -57,11 +81,11 @@ FirebaseServer.prototype = {
 			send({d: {r: requestId, b: {s: 'permission_denied', d: 'Permission denied'}}, t: 'd'});
 		}
 
-		function handleListen(requestId, path, fbRef) {
+		var handleListen = co.wrap(function *(requestId, path, fbRef) {
 			_log('Client listen ' + path);
 
 			if (server._ruleset) {
-				var dataSnap = new RuleDataSnapshot(RuleDataSnapshot.convert(fbRef.root().getData()));
+				var dataSnap = new RuleDataSnapshot(RuleDataSnapshot.convert(yield getExport(fbRef.root())));
 				var result = server._ruleset.tryRead(path, dataSnap);
 				if (!result.allowed) {
 					_log('Permission denied for client to read from ' + path + ': ' + result.info);
@@ -70,24 +94,24 @@ FirebaseServer.prototype = {
 				return;
 			}
 
-			var currentData = fbRef.getData();
+			var currentData = yield getExport(fbRef);
 			if ((typeof currentData !== 'undefined') && (currentData !== null)) {
-				pushData(path, fbRef.getData());
+				pushData(path, currentData);
 			}
 			send({d: {r: requestId, b: {s: 'ok', d: {}}}, t: 'd'});
 			fbRef.on('value', function (snap) {
 				if (snap.val()) {
-					pushData(path, fbRef.getData());
+					pushData(path, snap.exportVal());
 				}
 			});
-		}
+		});
 
-		function handleUpdate(requestId, path, fbRef, newData) {
+		var handleUpdate = co.wrap(function *(requestId, path, fbRef, newData) {
 			_log('Client update ' + path);
 
 			if (server._ruleset) {
-				var dataSnap = new RuleDataSnapshot(RuleDataSnapshot.convert(fbRef.root().getData()));
-				var mergedData = _.assign(fbRef.getData(), newData);
+				var dataSnap = new RuleDataSnapshot(RuleDataSnapshot.convert(yield getExport(fbRef.root())));
+				var mergedData = _.assign(yield getExport(fbRef), newData);
 				var result = server._ruleset.tryWrite(path, dataSnap, mergedData);
 				if (!result.allowed) {
 					_log('Permission denied for client to write to ' + path + ': ' + result.info);
@@ -96,17 +120,17 @@ FirebaseServer.prototype = {
 				return;
 			}
 
-			fbRef.update(newData, function () {
-				// TODO check for failure
+			fbRef.update(newData);
+			setTimeout(function () {
 				send({d: {r: requestId, b: {s: 'ok', d: {}}}, t: 'd'});
 			});
-		}
+		});
 
-		function handleSet(requestId, path, fbRef, newData, hash) {
+		var handleSet = co.wrap(function *(requestId, path, fbRef, newData, hash) {
 			_log('Client set ' + path);
 
 			if (server._ruleset) {
-				var dataSnap = new RuleDataSnapshot(RuleDataSnapshot.convert(fbRef.root().getData()));
+				var dataSnap = new RuleDataSnapshot(RuleDataSnapshot.convert(yield getExport(fbRef.root())));
 				var result = server._ruleset.tryWrite(path, dataSnap, newData);
 				if (!result.allowed) {
 					_log('Permission denied for client to write to ' + path + ': ' + result.info);
@@ -116,20 +140,22 @@ FirebaseServer.prototype = {
 			}
 
 			if (typeof hash !== 'undefined') {
-				var calculatedHash = firebaseHash(fbRef.getData());
+				var snap = yield getSnap(fbRef);
+				var calculatedHash = firebaseHash(snap.exportVal());
 				if (hash !== calculatedHash) {
-					pushData(path, fbRef.getData());
+					pushData(path, snap.exportVal());
 					send({d: {r: requestId, b: {s: 'datastale', d: 'Transaction hash does not match'}}, t: 'd'});
 					return;
 				}
 			}
 
-			fbRef.set(newData, function () {
+			fbRef.set(newData);
+			setTimeout(co.wrap (function *() {
 				// TODO check for failure
-				pushData(path, fbRef.getData());
+				pushData(path, yield getExport(fbRef));
 				send({d: {r: requestId, b: {s: 'ok', d: {}}}, t: 'd'});
-			});
-		}
+			}));
+		});
 
 		ws.on('message', function (data) {
 			_log('Client message: ' + data);
@@ -143,7 +169,7 @@ FirebaseServer.prototype = {
 					path = parsed.d.b.p.substr(1);
 				}
 				var requestId = parsed.d.r;
-				var fbRef = path ? this.mockFb.child(path) : this.mockFb;
+				var fbRef = path ? this.baseRef.child(path) : this.baseRef;
 				if (parsed.d.a === 'l' || parsed.d.a === 'q') {
 					handleListen(requestId, path, fbRef);
 				}
@@ -163,8 +189,16 @@ FirebaseServer.prototype = {
 		this._ruleset = new Ruleset(rules);
 	},
 
-	getData: function () {
-		return this.mockFb.getData();
+	getSnap: function (ref) {
+		return getSnap(ref || this.baseRef);
+	},
+
+	getValue: function (ref) {
+		return getValue(ref || this.baseRef);
+	},
+
+	getExport: function (ref) {
+		return getExport(ref || this.baseRef);
 	},
 
 	close: function () {

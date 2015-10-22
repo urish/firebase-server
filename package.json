@@ -36,13 +36,14 @@
     "grunt-contrib-jshint": "^0.11.2",
     "grunt-mocha-cov": "^0.4.0",
     "load-grunt-tasks": "^3.2.0",
-    "lodash": "^3.9.3",
     "mocha": "^2.2.5",
     "mockery": "^1.4.0"
   },
   "dependencies": {
+    "co": "^4.6.0",
+    "firebase-copy": "^0.1.1",
     "lodash": "^3.10.1",
-    "mockfirebase": "^0.11.0",
+    "bluebird": "^1.2.0",
     "targaryen": "^1.1.4",
     "ws": "0.7.2"
   }
