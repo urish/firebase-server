@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "npm run lint && npm run cover",
-    "cover": "istanbul cover ./node_modules/.bin/_mocha",
+    "cover": "istanbul cover ./node_modules/.bin/_mocha -- $(node-version --lt-4.0.0 --compilers js:babel/register)",
+    "debug": "mocha $(node-version --lt-4.0.0 --compilers js:babel/register)",
     "lint": "jshint index.js lib/*.js test/*.js"
   },
   "repository": {
@@ -28,13 +29,15 @@
     "CHANGELOG.md"
   ],
   "devDependencies": {
+    "babel": "^5.8.23",
     "coveralls": "^2.11.4",
     "faye-websocket": "0.10.0",
     "firebase": "^2.2.5",
     "istanbul": "^0.4.0",
     "jshint": "^2.8.0",
     "mocha": "^2.2.5",
-    "mockery": "^1.4.0"
+    "mockery": "^1.4.0",
+    "node-version-cli": "^1.1.4"
   },
   "dependencies": {
     "co": "^4.6.0",
