@@ -30,13 +30,7 @@ function getSnap(ref) {
 	});
 }
 
-function getValue(ref) {
-	return getSnap(ref).then(function (snap) {
-		return snap.val();
-	});
-}
-
-function getExport(ref) {
+function exportData(ref) {
 	return getSnap(ref).then(function (snap) {
 		return snap.exportVal();
 	});
@@ -95,7 +89,7 @@ FirebaseServer.prototype = {
 		}
 
 		function ruleSnapshot(fbRef) {
-			return getExport(fbRef.root()).then(function (exportVal) {
+			return exportData(fbRef.root()).then(function (exportVal) {
 				return new RuleDataSnapshot(RuleDataSnapshot.convert(exportVal));
 			});
 		}
@@ -161,7 +155,7 @@ FirebaseServer.prototype = {
 			var checkPermission = Promise.resolve(true);
 
 			if (server._ruleset) {
-				checkPermission = getExport(fbRef).then(function (currentData) {
+				checkPermission = exportData(fbRef).then(function (currentData) {
 					var mergedData = _.assign(currentData, newData);
 					return tryWrite(requestId, path, fbRef, mergedData);
 				});
@@ -180,7 +174,7 @@ FirebaseServer.prototype = {
 			var path = normalizedPath.path;
 
 			if (normalizedPath.isPriorityPath) {
-				progress = getExport(fbRef).then(function (parentData) {
+				progress = exportData(fbRef).then(function (parentData) {
 					if (_.isObject(parentData)) {
 						parentData['.priority'] = newData;
 					} else {
@@ -257,11 +251,13 @@ FirebaseServer.prototype = {
 	},
 
 	getValue: function (ref) {
-		return getValue(ref || this.baseRef);
+		return this.getSnap(ref).then(function (snap) {
+			return snap.val();
+		});
 	},
 
-	getExport: function (ref) {
-		return getExport(ref || this.baseRef);
+	exportData: function (ref) {
+		return exportData(ref || this.baseRef);
 	},
 
 	close: function () {

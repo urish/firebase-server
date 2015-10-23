@@ -327,7 +327,7 @@ describe('Firebase Server', function () {
 			var client = new Firebase(newServerUrl());
 
 			function assertServerValues() {
-				server.getExport()
+				server.exportData()
 					.then(function (exportVal) {
 						assert.deepEqual(exportVal, {
 							states: {
@@ -361,7 +361,7 @@ describe('Firebase Server', function () {
 			var client = new Firebase(newServerUrl());
 
 			function assertServerValues() {
-				server.getExport()
+				server.exportData()
 					.then(function (exportVal) {
 						assert.deepEqual(exportVal, {
 							states: {
