@@ -42,6 +42,19 @@ function getExport(ref) {
 	});
 }
 
+function normalizePath(fullPath) {
+	var path = fullPath;
+	var isPriorityPath = /\/?\.priority$/.test(path);
+	if (isPriorityPath) {
+		path = path.replace( /\/?\.priority$/, '');
+	}
+	return {
+		isPriorityPath: isPriorityPath,
+		path: path,
+		fullPath: fullPath
+	};
+}
+
 function FirebaseServer(port, name, data) {
 	this.Firebase = firebaseCopy();
 	this.name = name || 'mock.firebase.server';
@@ -115,14 +128,18 @@ FirebaseServer.prototype = {
 			return Promise.resolve(true);
 		}
 
-		function handleListen(requestId, path, fbRef) {
+		function handleListen(requestId, normalizedPath, fbRef) {
+			if (normalizedPath.isPriorityPath) {
+				throw new Error('I don\'t know how to listen to a priority path');
+			}
+			var path = normalizedPath.path;
 			_log('Client listen ' + path);
 
 			tryRead(requestId, path, fbRef)
 				.then(function () {
 					var sendOk = true;
 					fbRef.on('value', function (snap) {
-						if (snap.val()) {
+						if (snap.exportVal()) {
 							pushData(path, snap.exportVal());
 						}
 						if (sendOk) {
@@ -134,7 +151,11 @@ FirebaseServer.prototype = {
 				.catch(_log);
 		}
 
-		function handleUpdate(requestId, path, fbRef, newData) {
+		function handleUpdate(requestId, normalizedPath, fbRef, newData) {
+			if (normalizedPath.isPriorityPath) {
+				throw new Error('I don\'t know how to update a priority path');
+			}
+			var path = normalizedPath.path;
 			_log('Client update ' + path);
 
 			var checkPermission = Promise.resolve(true);
@@ -152,11 +173,29 @@ FirebaseServer.prototype = {
 			}).catch(_log);
 		}
 
-		function handleSet(requestId, path, fbRef, newData, hash) {
-			_log('Client set ' + path);
+		function handleSet(requestId, normalizedPath, fbRef, newData, hash) {
+			_log('Client set ' + normalizedPath.fullPath);
 
-			var progress =
-				tryWrite(requestId, path, fbRef, newData);
+			var progress = Promise.resolve(true);
+			var path = normalizedPath.path;
+
+			if (normalizedPath.isPriorityPath) {
+				progress = getExport(fbRef).then(function (parentData) {
+					if (_.isObject(parentData)) {
+						parentData['.priority'] = newData;
+					} else {
+						parentData = {
+							'.value': parentData,
+							'.priority': newData
+						};
+					}
+					newData = parentData;
+				});
+			}
+
+			progress = progress.then(function () {
+				return tryWrite(requestId, path, fbRef, newData);
+			});
 
 			if (typeof hash !== 'undefined') {
 				progress = progress.then(function () {
@@ -191,8 +230,9 @@ FirebaseServer.prototype = {
 				if (typeof parsed.d.b.p !== 'undefined') {
 					path = parsed.d.b.p.substr(1);
 				}
+				path = normalizePath(path || '');
 				var requestId = parsed.d.r;
-				var fbRef = path ? this.baseRef.child(path) : this.baseRef;
+				var fbRef = path.path ? this.baseRef.child(path.path) : this.baseRef;
 				if (parsed.d.a === 'l' || parsed.d.a === 'q') {
 					handleListen(requestId, path, fbRef);
 				}

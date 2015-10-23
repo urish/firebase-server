@@ -313,4 +313,85 @@ describe('Firebase Server', function () {
 			}));
 		});
 	});
+
+	function priorityQueryTest(setFromClient, done) {
+		server = new FirebaseServer(PORT, 'localhost:' + PORT, {
+			states: {
+				CA: 'California',
+				AL: 'Alabama',
+				KY: 'Kentucky'
+			}
+		});
+		var client = new Firebase(newServerUrl());
+		var query = client.child('states').startAt(1);
+
+		var i = 0;
+		var expectedValues = [
+			null,
+			{
+				AL: '\'bama'
+			},
+			{
+				AL: '\'bama',
+				KY: 'Kentucky'
+			}
+		];
+
+		query.on('value', function(snap) {
+			try {
+				if (i > 2) {
+					assert.fail('should never reach step: ' + i);
+				}
+				assert.deepEqual(snap.val(), expectedValues[i]);
+				if (i === 2) {
+					setTimeout(finish, 300);
+				}
+			} catch (e) {
+				finish(e);
+			} finally {
+				i++;
+			}
+		});
+
+		var client2 = setFromClient ? client : server.mockFb;
+
+		setTimeout(function() {
+			client2.child('states/AL').setWithPriority('\'bama', 200);
+		}, 300);
+
+		setTimeout(function() {
+			client2.child('states/KY').setPriority(100);
+		}, 600);
+
+		function finish(e) {
+			if (e) {
+				return done(e);
+			}
+			server.getExport().then(function (exportVal) {
+				assert.deepEqual(exportVal, {
+					states: {
+						AL: {
+							'.value': '\'bama',
+							'.priority': 200
+						},
+						KY: {
+							'.value': 'Kentucky',
+							'.priority': 100
+						},
+						CA: 'California'
+					}
+				});
+				query.off('value');
+				done();
+			});
+		}
+	}
+
+	it('priority based queries (setFromClient)', function (done) {
+		priorityQueryTest(true, done);
+	});
+
+	//it.only('priority based queries (setOnServer)', function (done) {
+	//	priorityQueryTest(false, done);
+	//});
 });
