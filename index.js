@@ -8,10 +8,11 @@
 
 var _ = require('lodash');
 var WebSocketServer = require('ws').Server;
-var mockfirebase = require('mockfirebase');
 var Ruleset = require('targaryen/lib/ruleset');
 var RuleDataSnapshot = require('targaryen/lib/rule-data-snapshot');
 var firebaseHash = require('./lib/firebaseHash');
+var Promise = require('native-or-bluebird');  // jshint ignore:line
+var firebaseCopy = require('firebase-copy');
 
 var loggingEnabled = false;
 
@@ -21,10 +22,33 @@ function _log(message) {
 	}
 }
 
+function getSnap(ref) {
+	return new Promise(function (resolve) {
+		ref.once('value', function (snap) {
+			resolve(snap);
+		});
+	});
+}
+
+function getValue(ref) {
+	return getSnap(ref).then(function (snap) {
+		return snap.val();
+	});
+}
+
+function getExport(ref) {
+	return getSnap(ref).then(function (snap) {
+		return snap.exportVal();
+	});
+}
+
 function FirebaseServer(port, name, data) {
+	this.Firebase = firebaseCopy();
 	this.name = name || 'mock.firebase.server';
-	this.mockFb = new mockfirebase.MockFirebase('https://' + this.name + '/', data);
-	this.mockFb.autoFlush(1);
+	this.Firebase.goOffline();
+	this.baseRef = new this.Firebase('ws://fakeserver.firebaseio.com');
+
+	this.baseRef.set(data || null);
 
 	this._wss = new WebSocketServer({
 		port: port
@@ -57,78 +81,103 @@ FirebaseServer.prototype = {
 			send({d: {r: requestId, b: {s: 'permission_denied', d: 'Permission denied'}}, t: 'd'});
 		}
 
+		function ruleSnapshot(fbRef) {
+			return getExport(fbRef.root()).then(function (exportVal) {
+				return new RuleDataSnapshot(RuleDataSnapshot.convert(exportVal));
+			});
+		}
+
+		function tryRead(requestId, path, fbRef) {
+			if (server._ruleset) {
+				return ruleSnapshot(fbRef).then(function (dataSnap) {
+					var result = server._ruleset.tryRead(path, dataSnap);
+					if (!result.allowed) {
+						permissionDenied(requestId);
+						throw new Error('Permission denied for client to read from ' + path + ': ' + result.info);
+					}
+					return true;
+				});
+			}
+			return Promise.resolve(true);
+		}
+
+		function tryWrite(requestId, path, fbRef, newData) {
+			if (server._ruleset) {
+				return ruleSnapshot(fbRef).then(function (dataSnap) {
+					var result = server._ruleset.tryWrite(path, dataSnap, newData);
+					if (!result.allowed) {
+						permissionDenied(requestId);
+						throw new Error('Permission denied for client to write to ' + path + ': ' + result.info);
+					}
+					return true;
+				});
+			}
+			return Promise.resolve(true);
+		}
+
 		function handleListen(requestId, path, fbRef) {
 			_log('Client listen ' + path);
 
-			if (server._ruleset) {
-				var dataSnap = new RuleDataSnapshot(RuleDataSnapshot.convert(fbRef.root().getData()));
-				var result = server._ruleset.tryRead(path, dataSnap);
-				if (!result.allowed) {
-					_log('Permission denied for client to read from ' + path + ': ' + result.info);
-					permissionDenied(requestId);
-				}
-				return;
-			}
-
-			var currentData = fbRef.getData();
-			if ((typeof currentData !== 'undefined') && (currentData !== null)) {
-				pushData(path, fbRef.getData());
-			}
-			send({d: {r: requestId, b: {s: 'ok', d: {}}}, t: 'd'});
-			fbRef.on('value', function (snap) {
-				if (snap.val()) {
-					pushData(path, fbRef.getData());
-				}
-			});
+			tryRead(requestId, path, fbRef)
+				.then(function () {
+					var sendOk = true;
+					fbRef.on('value', function (snap) {
+						if (snap.val()) {
+							pushData(path, snap.exportVal());
+						}
+						if (sendOk) {
+							sendOk = false;
+							send({d: {r: requestId, b: {s: 'ok', d: {}}}, t: 'd'});
+						}
+					});
+				})
+				.catch(_log);
 		}
 
 		function handleUpdate(requestId, path, fbRef, newData) {
 			_log('Client update ' + path);
 
+			var checkPermission = Promise.resolve(true);
+
 			if (server._ruleset) {
-				var dataSnap = new RuleDataSnapshot(RuleDataSnapshot.convert(fbRef.root().getData()));
-				var mergedData = _.assign(fbRef.getData(), newData);
-				var result = server._ruleset.tryWrite(path, dataSnap, mergedData);
-				if (!result.allowed) {
-					_log('Permission denied for client to write to ' + path + ': ' + result.info);
-					permissionDenied(requestId);
-				}
-				return;
+				checkPermission = getExport(fbRef).then(function (currentData) {
+					var mergedData = _.assign(currentData, newData);
+					return tryWrite(requestId, path, fbRef, mergedData);
+				});
 			}
 
-			fbRef.update(newData, function () {
-				// TODO check for failure
+			checkPermission.then(function () {
+				fbRef.update(newData);
 				send({d: {r: requestId, b: {s: 'ok', d: {}}}, t: 'd'});
-			});
+			}).catch(_log);
 		}
 
 		function handleSet(requestId, path, fbRef, newData, hash) {
 			_log('Client set ' + path);
 
-			if (server._ruleset) {
-				var dataSnap = new RuleDataSnapshot(RuleDataSnapshot.convert(fbRef.root().getData()));
-				var result = server._ruleset.tryWrite(path, dataSnap, newData);
-				if (!result.allowed) {
-					_log('Permission denied for client to write to ' + path + ': ' + result.info);
-					permissionDenied(requestId);
-				}
-				return;
-			}
+			var progress =
+				tryWrite(requestId, path, fbRef, newData);
 
 			if (typeof hash !== 'undefined') {
-				var calculatedHash = firebaseHash(fbRef.getData());
-				if (hash !== calculatedHash) {
-					pushData(path, fbRef.getData());
-					send({d: {r: requestId, b: {s: 'datastale', d: 'Transaction hash does not match'}}, t: 'd'});
-					return;
-				}
+				progress = progress.then(function () {
+					return getSnap(fbRef);
+				}).then (function (snap) {
+					var calculatedHash = firebaseHash(snap.exportVal());
+					if (hash !== calculatedHash) {
+						pushData(path, snap.exportVal());
+						send({d: {r: requestId, b: {s: 'datastale', d: 'Transaction hash does not match'}}, t: 'd'});
+						throw new Error('Transaction hash does not match: ' + hash + ' !==' + calculatedHash);
+					}
+				});
 			}
 
-			fbRef.set(newData, function () {
-				// TODO check for failure
-				pushData(path, fbRef.getData());
-				send({d: {r: requestId, b: {s: 'ok', d: {}}}, t: 'd'});
-			});
+			progress.then(function () {
+				fbRef.set(newData);
+				fbRef.once('value', function (snap) {
+					pushData(path, snap.exportVal());
+					send({d: {r: requestId, b: {s: 'ok', d: {}}}, t: 'd'});
+				});
+			}).catch(_log);
 		}
 
 		ws.on('message', function (data) {
@@ -143,7 +192,7 @@ FirebaseServer.prototype = {
 					path = parsed.d.b.p.substr(1);
 				}
 				var requestId = parsed.d.r;
-				var fbRef = path ? this.mockFb.child(path) : this.mockFb;
+				var fbRef = path ? this.baseRef.child(path) : this.baseRef;
 				if (parsed.d.a === 'l' || parsed.d.a === 'q') {
 					handleListen(requestId, path, fbRef);
 				}
@@ -163,8 +212,16 @@ FirebaseServer.prototype = {
 		this._ruleset = new Ruleset(rules);
 	},
 
-	getData: function () {
-		return this.mockFb.getData();
+	getSnap: function (ref) {
+		return getSnap(ref || this.baseRef);
+	},
+
+	getValue: function (ref) {
+		return getValue(ref || this.baseRef);
+	},
+
+	getExport: function (ref) {
+		return getExport(ref || this.baseRef);
 	},
 
 	close: function () {

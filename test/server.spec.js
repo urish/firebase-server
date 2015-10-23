@@ -15,6 +15,7 @@ var assert = require('assert');
 
 var Firebase;
 var FirebaseServer = require('../index');
+var co = require('co');
 
 // Firebase has strict requirements about the hostname format. So we provide a dummy
 // hostname and then change the URL to localhost inside the faye-websocket's Client
@@ -104,9 +105,9 @@ describe('Firebase Server', function () {
 			client.child('states').update({
 				NY: 'New York',
 				CA: 'Toronto'
-			}, function (err) {
+			}, co.wrap(function *(err) {
 				assert.ok(!err, 'update() call returned an error');
-				assert.deepEqual(server.getData(), {
+				assert.deepEqual(yield server.getValue(), {
 					states: {
 						NY: 'New York',
 						CA: 'Toronto',
@@ -115,7 +116,7 @@ describe('Firebase Server', function () {
 					}
 				});
 				done();
-			});
+			}));
 		});
 	});
 
@@ -125,13 +126,13 @@ describe('Firebase Server', function () {
 			var client = new Firebase(newServerUrl());
 			client.set({
 				'foo': 'bar'
-			}, function (err) {
+			}, co.wrap(function *(err) {
 				assert.ok(!err, 'set() call returned an error');
-				assert.deepEqual(server.getData(), {
+				assert.deepEqual(yield server.getValue(), {
 					'foo': 'bar'
 				});
 				done();
-			});
+			}));
 		});
 	});
 
@@ -142,13 +143,13 @@ describe('Firebase Server', function () {
 				'child2': 5
 			});
 			var client = new Firebase(newServerUrl());
-			client.child('child1').remove(function (err) {
+			client.child('child1').remove(co.wrap(function *(err) {
 				assert.ok(!err, 'remove() call returned an error');
-				assert.deepEqual(server.getData(), {
+				assert.deepEqual(yield server.getValue(), {
 					'child2': 5
 				});
 				done();
-			});
+			}));
 		});
 
 		it('should trigger a "value" event with null', function (done) {
@@ -176,13 +177,13 @@ describe('Firebase Server', function () {
 			client.child('users').child('wilma').transaction(function (currentData) {
 				assert.equal(currentData, null);
 				return {name: {first: 'Wilma', last: 'Flintstone'}};
-			}, function (error, committed, snapshot) {
+			}, co.wrap(function *(error, committed, snapshot) {
 				assert.equal(error, null);
 				assert.equal(committed, true);
 				assert.deepEqual(snapshot.val(), {name: {first: 'Wilma', last: 'Flintstone'}});
-				assert.deepEqual(server.getData(), {users: {wilma: {name: {first: 'Wilma', last: 'Flintstone'}}}});
+				assert.deepEqual(yield server.getValue(), {users: {wilma: {name: {first: 'Wilma', last: 'Flintstone'}}}});
 				done();
-			});
+			}));
 		});
 
 		it('should return existing data inside the updateFunction function', function (done) {
@@ -235,13 +236,13 @@ describe('Firebase Server', function () {
 				} else {
 					return;
 				}
-			}, function (error, committed, snapshot) {
+			}, co.wrap(function *(error, committed, snapshot) {
 				assert.equal(error, null);
 				assert.equal(committed, false);
 				assert.deepEqual(snapshot.val(), {name: {first: 'Uri', last: 'Shaked'}});
-				assert.deepEqual(server.getData(), {users: {uri: {name: {first: 'Uri', last: 'Shaked'}}}});
+				assert.deepEqual(yield server.getValue(), {users: {uri: {name: {first: 'Uri', last: 'Shaked'}}}});
 				done();
-			});
+			}));
 		});
 	});
 
@@ -279,14 +280,14 @@ describe('Firebase Server', function () {
 			var client = new Firebase(newServerUrl());
 			client.set({
 				'foo': 'bar'
-			}, function (err) {
+			}, co.wrap(function *(err) {
 				assert.ok(err, 'set() should have returned an error');
 				assert.equal(err.code, 'PERMISSION_DENIED');
-				assert.deepEqual(server.getData(), {
+				assert.deepEqual(yield server.getValue(), {
 					Firebase: 'great!'
 				});
 				done();
-			});
+			}));
 		});
 
 		it('should forbid updates when there is no write permission', function(done) {
@@ -302,14 +303,14 @@ describe('Firebase Server', function () {
 			var client = new Firebase(newServerUrl());
 			client.update({
 				'foo': 'bar'
-			}, function (err) {
+			}, co.wrap(function *(err) {
 				assert.ok(err, 'update() should have returned an error');
 				assert.equal(err.code, 'PERMISSION_DENIED');
-				assert.deepEqual(server.getData(), {
+				assert.deepEqual(yield server.getValue(), {
 					Firebase: 'great!'
 				});
 				done();
-			});
+			}));
 		});
 	});
 });

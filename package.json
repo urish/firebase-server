@@ -4,7 +4,11 @@
   "description": "Simple Firebase Server",
   "main": "index.js",
   "scripts": {
-    "test": "grunt test"
+    "test": "npm run lint && npm run cover && npm run test-es5",
+    "cover": "istanbul cover ./node_modules/.bin/_mocha -- $(node-version --lt-4.0.0 --compilers js:babel/register) test/*.spec.js",
+    "test-es5": "mocha test/es5-only-test.js",
+    "debug": "mocha $(node-version --lt-4.0.0 --compilers js:babel/register)",
+    "lint": "jshint index.js lib/*.js test/*.js"
   },
   "repository": {
     "type": "git",
@@ -20,29 +24,28 @@
     "url": "https://github.com/urish/firebase-server/issues"
   },
   "homepage": "https://github.com/urish/firebase-server",
-  "config": {
-    "blanket": {
-      "pattern": [
-        "lib",
-        "index.js"
-      ],
-      "data-cover-never": "node_modules"
-    }
-  },
+  "files": [
+    "index.js",
+    "lib/*.js",
+    "CHANGELOG.md"
+  ],
   "devDependencies": {
+    "babel": "^5.8.23",
+    "bluebird": "^1.2.0",
+    "co": "^4.6.0",
+    "coveralls": "^2.11.4",
     "faye-websocket": "0.10.0",
     "firebase": "^2.2.5",
-    "grunt": "^0.4.5",
-    "grunt-contrib-jshint": "^0.11.2",
-    "grunt-mocha-cov": "^0.4.0",
-    "load-grunt-tasks": "^3.2.0",
-    "lodash": "^3.9.3",
+    "istanbul": "^0.4.0",
+    "jshint": "^2.8.0",
     "mocha": "^2.2.5",
-    "mockery": "^1.4.0"
+    "mockery": "^1.4.0",
+    "node-version-cli": "^1.1.4"
   },
   "dependencies": {
+    "firebase-copy": "^0.1.1",
     "lodash": "^3.10.1",
-    "mockfirebase": "^0.11.0",
+    "native-or-bluebird": "^1.2.0",
     "targaryen": "^1.1.4",
     "ws": "0.7.2"
   }
