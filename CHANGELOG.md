@@ -2,7 +2,7 @@
 
 ## 0.4.0 - TBD
 
-- Basic support for Firebase Security ruels
+- Basic support for Firebase Security rules through [targaryen](https://github.com/goldibex/targaryen) (fixes [#11](https://github.com/urish/firebase-server/issues/11))
 
 ## 0.3.1 - 2015-08-18
 
