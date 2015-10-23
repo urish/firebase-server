@@ -246,8 +246,8 @@ describe('Firebase Server', function () {
 		});
 	});
 
-	describe('security rules', function() {
-		it('should forbid reading data when there is no read permission', function(done) {
+	describe('security rules', function () {
+		it('should forbid reading data when there is no read permission', function (done) {
 			server = new FirebaseServer(PORT, 'localhost:' + PORT, {
 				Firebase: 'great!'
 			});
@@ -261,13 +261,13 @@ describe('Firebase Server', function () {
 			client.on('value', function () {
 				client.off('value');
 				done(new Error('Client has read permission despite security rules'));
-			}, function(err) {
+			}, function (err) {
 				assert.equal(err.code, 'PERMISSION_DENIED');
 				done();
 			});
 		});
 
-		it('should forbid writing when there is no write permission', function(done) {
+		it('should forbid writing when there is no write permission', function (done) {
 			server = new FirebaseServer(PORT, 'localhost:' + PORT, {
 				Firebase: 'great!'
 			});
@@ -290,7 +290,7 @@ describe('Firebase Server', function () {
 			}));
 		});
 
-		it('should forbid updates when there is no write permission', function(done) {
+		it('should forbid updates when there is no write permission', function (done) {
 			server = new FirebaseServer(PORT, 'localhost:' + PORT, {
 				Firebase: 'great!'
 			});
@@ -314,84 +314,98 @@ describe('Firebase Server', function () {
 		});
 	});
 
-	function priorityQueryTest(setFromClient, done) {
-		server = new FirebaseServer(PORT, 'localhost:' + PORT, {
-			states: {
-				CA: 'California',
-				AL: 'Alabama',
-				KY: 'Kentucky'
-			}
-		});
-		var client = new Firebase(newServerUrl());
-		var query = client.child('states').startAt(1);
-
-		var i = 0;
-		var expectedValues = [
-			null,
-			{
-				AL: '\'bama'
-			},
-			{
-				AL: '\'bama',
-				KY: 'Kentucky'
-			}
-		];
-
-		query.on('value', function(snap) {
-			try {
-				if (i > 2) {
-					assert.fail('should never reach step: ' + i);
+	describe('#setPriority', function () {
+		it('should update the priority value for the given child', function (done) {
+			server = new FirebaseServer(PORT, 'localhost:' + PORT, {
+				states: {
+					AL: 'Alabama',
+					CA: 'California',
+					KY: 'Kentucky'
 				}
-				assert.deepEqual(snap.val(), expectedValues[i]);
-				if (i === 2) {
-					setTimeout(finish, 300); // eslint-disable-line no-use-before-define
-				}
-			} catch (e) {
-				finish(e); // eslint-disable-line no-use-before-define
-			} finally {
-				i++;
-			}
-		});
-
-		var client2 = setFromClient ? client : server.mockFb;
-
-		setTimeout(function() {
-			client2.child('states/AL').setWithPriority('\'bama', 200);
-		}, 300);
-
-		setTimeout(function() {
-			client2.child('states/KY').setPriority(100);
-		}, 600);
-
-		function finish(e) {
-			if (e) {
-				return done(e);
-			}
-			server.getExport().then(function (exportVal) {
-				assert.deepEqual(exportVal, {
-					states: {
-						AL: {
-							'.value': '\'bama',
-							'.priority': 200
-						},
-						KY: {
-							'.value': 'Kentucky',
-							'.priority': 100
-						},
-						CA: 'California'
-					}
-				});
-				query.off('value');
-				done();
 			});
-		}
-	}
 
-	it('priority based queries (setFromClient)', function (done) {
-		priorityQueryTest(true, done);
+			var client = new Firebase(newServerUrl());
+
+			function assertServerValues() {
+				server.getExport()
+					.then(function (exportVal) {
+						assert.deepEqual(exportVal, {
+							states: {
+								AL: 'Alabama',
+								KY: {
+									'.value': 'Kentucky',
+									'.priority': 100
+								},
+								CA: 'California'
+							}
+						});
+						done();
+					})
+					.catch(assert.fail.bind(assert));
+			}
+
+			client.child('states/KY').setPriority(100, assertServerValues);
+		});
 	});
 
-	//it.only('priority based queries (setOnServer)', function (done) {
-	//	priorityQueryTest(false, done);
-	//});
+	describe('#setWithPriority', function () {
+		it('should update both the value and the priority value for the given child', function (done) {
+			server = new FirebaseServer(PORT, 'localhost:' + PORT, {
+				states: {
+					AL: 'Alabama',
+					CA: 'California',
+					KY: 'Kentucky'
+				}
+			});
+
+			var client = new Firebase(newServerUrl());
+
+			function assertServerValues() {
+				server.getExport()
+					.then(function (exportVal) {
+						assert.deepEqual(exportVal, {
+							states: {
+								AL: 'Alabama',
+								KY: {
+									'.value': 'K-tucky',
+									'.priority': 400
+								},
+								CA: 'California'
+							}
+						});
+						done();
+					})
+					.catch(assert.fail.bind(assert));
+			}
+
+			client.child('states/KY').setWithPriority('K-tucky', 400, assertServerValues);
+		});
+	});
+
+	describe('server priority', function () {
+		it('should be reflected when calling snapshot.exportVal() on client', function (done) {
+			server = new FirebaseServer(PORT, 'localhost:' + PORT, {
+				states: {
+					AL: {
+						'.value': 'Alabama',
+						'.priority': 418
+					},
+					CA: 'California',
+					KY: 'Kentucky'
+				}
+			});
+
+			var client = new Firebase(newServerUrl());
+			client.child('states').child('AL').on('value', function (snap) {
+				assert.deepEqual(snap.val(), 'Alabama');
+
+				assert.deepEqual(snap.exportVal(), {
+					'.value': 'Alabama',
+					'.priority': 418
+				});
+
+				done();
+			});
+		});
+	});
 });
