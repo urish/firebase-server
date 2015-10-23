@@ -2,7 +2,6 @@
 
 function areGeneratorsSupported() {
 	try {
-		// jshint evil:true
 		eval('(function*(){})()');
 		return true;
 	} catch (err) {
@@ -13,4 +12,3 @@ function areGeneratorsSupported() {
 if (!areGeneratorsSupported()) {
 	require('babel/register');
 }
-

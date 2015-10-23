@@ -18,7 +18,7 @@ var loggingEnabled = false;
 
 function _log(message) {
 	if (loggingEnabled) {
-		console.log('[firebase-server] ' + message);
+		console.log('[firebase-server] ' + message); // eslint-disable-line no-console
 	}
 }
 
@@ -46,7 +46,7 @@ function normalizePath(fullPath) {
 	var path = fullPath;
 	var isPriorityPath = /\/?\.priority$/.test(path);
 	if (isPriorityPath) {
-		path = path.replace( /\/?\.priority$/, '');
+		path = path.replace(/\/?\.priority$/, '');
 	}
 	return {
 		isPriorityPath: isPriorityPath,
@@ -200,7 +200,7 @@ FirebaseServer.prototype = {
 			if (typeof hash !== 'undefined') {
 				progress = progress.then(function () {
 					return getSnap(fbRef);
-				}).then (function (snap) {
+				}).then(function (snap) {
 					var calculatedHash = firebaseHash(snap.exportVal());
 					if (hash !== calculatedHash) {
 						pushData(path, snap.exportVal());

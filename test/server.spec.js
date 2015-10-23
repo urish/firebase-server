@@ -234,7 +234,7 @@ describe('Firebase Server', function () {
 				if (currentData === null) {
 					return 'new-data';
 				} else {
-					return;
+					return undefined;
 				}
 			}, co.wrap(function *(error, committed, snapshot) {
 				assert.equal(error, null);
@@ -344,10 +344,10 @@ describe('Firebase Server', function () {
 				}
 				assert.deepEqual(snap.val(), expectedValues[i]);
 				if (i === 2) {
-					setTimeout(finish, 300);
+					setTimeout(finish, 300); // eslint-disable-line no-use-before-define
 				}
 			} catch (e) {
-				finish(e);
+				finish(e); // eslint-disable-line no-use-before-define
 			} finally {
 				i++;
 			}
