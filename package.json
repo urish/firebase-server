@@ -7,7 +7,7 @@
     "test": "npm run lint && npm run cover && npm run test-es5",
     "cover": "istanbul cover ./node_modules/.bin/_mocha -- $(node-version --lt-4.0.0 --compilers js:babel/register) test/*.spec.js",
     "test-es5": "mocha test/es5-only-test.js",
-    "debug": "mocha $(node-version --lt-4.0.0 --compilers js:babel/register)",
+    "debug": "mocha $(node-version --lt-4.0.0 --compilers js:babel/register) test/*.spec.js",
     "lint": "jshint index.js lib/*.js test/*.js"
   },
   "repository": {
