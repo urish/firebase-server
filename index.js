@@ -11,7 +11,7 @@ var WebSocketServer = require('ws').Server;
 var Ruleset = require('targaryen/lib/ruleset');
 var RuleDataSnapshot = require('targaryen/lib/rule-data-snapshot');
 var firebaseHash = require('./lib/firebaseHash');
-var Promise = require('native-or-bluebird');  // jshint ignore:line
+var Promise = require('native-or-bluebird');
 var firebaseCopy = require('firebase-copy');
 
 var loggingEnabled = false;
