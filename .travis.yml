@@ -3,6 +3,7 @@ node_js:
   - "stable"
   - "0.10"
   - "0.12"
+  - "4.0.0"
 
 after_script:
   - cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js
