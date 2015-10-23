@@ -11,9 +11,8 @@ var WebSocketServer = require('ws').Server;
 var Ruleset = require('targaryen/lib/ruleset');
 var RuleDataSnapshot = require('targaryen/lib/rule-data-snapshot');
 var firebaseHash = require('./lib/firebaseHash');
-var Promise = require('bluebird');  // jshint ignore:line
+var Promise = require('native-or-bluebird');  // jshint ignore:line
 var firebaseCopy = require('firebase-copy');
-var co = require('co');
 
 var loggingEnabled = false;
 
@@ -22,6 +21,7 @@ function _log(message) {
 		console.log('[firebase-server] ' + message);
 	}
 }
+
 function getSnap(ref) {
 	return new Promise(function (resolve) {
 		ref.once('value', function (snap) {
@@ -81,81 +81,104 @@ FirebaseServer.prototype = {
 			send({d: {r: requestId, b: {s: 'permission_denied', d: 'Permission denied'}}, t: 'd'});
 		}
 
-		var handleListen = co.wrap(function *(requestId, path, fbRef) {
+		function ruleSnapshot(fbRef) {
+			return getExport(fbRef.root()).then(function (exportVal) {
+				return new RuleDataSnapshot(RuleDataSnapshot.convert(exportVal));
+			});
+		}
+
+		function tryRead(requestId, path, fbRef) {
+			if (server._ruleset) {
+				return ruleSnapshot(fbRef).then(function (dataSnap) {
+					var result = server._ruleset.tryRead(path, dataSnap);
+					if (!result.allowed) {
+						permissionDenied(requestId);
+						throw new Error('Permission denied for client to read from ' + path + ': ' + result.info);
+					}
+					return true;
+				});
+			}
+			return Promise.resolve(true);
+		}
+
+		function tryWrite(requestId, path, fbRef, newData) {
+			if (server._ruleset) {
+				return ruleSnapshot(fbRef).then(function (dataSnap) {
+					var result = server._ruleset.tryWrite(path, dataSnap, newData);
+					if (!result.allowed) {
+						permissionDenied(requestId);
+						throw new Error('Permission denied for client to write to ' + path + ': ' + result.info);
+					}
+					return true;
+				});
+			}
+			return Promise.resolve(true);
+		}
+
+		function handleListen(requestId, path, fbRef) {
 			_log('Client listen ' + path);
 
-			if (server._ruleset) {
-				var dataSnap = new RuleDataSnapshot(RuleDataSnapshot.convert(yield getExport(fbRef.root())));
-				var result = server._ruleset.tryRead(path, dataSnap);
-				if (!result.allowed) {
-					_log('Permission denied for client to read from ' + path + ': ' + result.info);
-					permissionDenied(requestId);
-				}
-				return;
-			}
+			tryRead(requestId, path, fbRef)
+				.then(function () {
+					var sendOk = true;
+					fbRef.on('value', function (snap) {
+						if (snap.val()) {
+							pushData(path, snap.exportVal());
+						}
+						if (sendOk) {
+							sendOk = false;
+							send({d: {r: requestId, b: {s: 'ok', d: {}}}, t: 'd'});
+						}
+					});
+				})
+				.catch(_log);
+		}
 
-			var currentData = yield getExport(fbRef);
-			if ((typeof currentData !== 'undefined') && (currentData !== null)) {
-				pushData(path, currentData);
-			}
-			send({d: {r: requestId, b: {s: 'ok', d: {}}}, t: 'd'});
-			fbRef.on('value', function (snap) {
-				if (snap.val()) {
-					pushData(path, snap.exportVal());
-				}
-			});
-		});
-
-		var handleUpdate = co.wrap(function *(requestId, path, fbRef, newData) {
+		function handleUpdate(requestId, path, fbRef, newData) {
 			_log('Client update ' + path);
 
+			var checkPermission = Promise.resolve(true);
+
 			if (server._ruleset) {
-				var dataSnap = new RuleDataSnapshot(RuleDataSnapshot.convert(yield getExport(fbRef.root())));
-				var mergedData = _.assign(yield getExport(fbRef), newData);
-				var result = server._ruleset.tryWrite(path, dataSnap, mergedData);
-				if (!result.allowed) {
-					_log('Permission denied for client to write to ' + path + ': ' + result.info);
-					permissionDenied(requestId);
-				}
-				return;
+				checkPermission = getExport(fbRef).then(function (currentData) {
+					var mergedData = _.assign(currentData, newData);
+					return tryWrite(requestId, path, fbRef, mergedData);
+				});
 			}
 
-			fbRef.update(newData);
-			setTimeout(function () {
+			checkPermission.then(function () {
+				fbRef.update(newData);
 				send({d: {r: requestId, b: {s: 'ok', d: {}}}, t: 'd'});
-			});
-		});
+			}).catch(_log);
+		}
 
-		var handleSet = co.wrap(function *(requestId, path, fbRef, newData, hash) {
+		function handleSet(requestId, path, fbRef, newData, hash) {
 			_log('Client set ' + path);
 
-			if (server._ruleset) {
-				var dataSnap = new RuleDataSnapshot(RuleDataSnapshot.convert(yield getExport(fbRef.root())));
-				var result = server._ruleset.tryWrite(path, dataSnap, newData);
-				if (!result.allowed) {
-					_log('Permission denied for client to write to ' + path + ': ' + result.info);
-					permissionDenied(requestId);
-				}
-				return;
-			}
+			var progress =
+				tryWrite(requestId, path, fbRef, newData);
 
 			if (typeof hash !== 'undefined') {
-				var snap = yield getSnap(fbRef);
-				var calculatedHash = firebaseHash(snap.exportVal());
-				if (hash !== calculatedHash) {
-					pushData(path, snap.exportVal());
-					send({d: {r: requestId, b: {s: 'datastale', d: 'Transaction hash does not match'}}, t: 'd'});
-					return;
-				}
+				progress = progress.then(function () {
+					return getSnap(fbRef);
+				}).then (function (snap) {
+					var calculatedHash = firebaseHash(snap.exportVal());
+					if (hash !== calculatedHash) {
+						pushData(path, snap.exportVal());
+						send({d: {r: requestId, b: {s: 'datastale', d: 'Transaction hash does not match'}}, t: 'd'});
+						throw new Error('Transaction hash does not match: ' + hash + ' !==' + calculatedHash);
+					}
+				});
 			}
 
-			fbRef.set(newData);
-			setTimeout(co.wrap (function *() {
-				// TODO check for failure
-				pushData(path, yield getExport(fbRef));
-				send({d: {r: requestId, b: {s: 'ok', d: {}}}, t: 'd'});
-			}));
-		});
+			progress.then(function () {
+				fbRef.set(newData);
+				fbRef.once('value', function (snap) {
+					pushData(path, snap.exportVal());
+					send({d: {r: requestId, b: {s: 'ok', d: {}}}, t: 'd'});
+				});
+			}).catch(_log);
+		}
 
 		ws.on('message', function (data) {
 			_log('Client message: ' + data);
