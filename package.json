@@ -4,7 +4,9 @@
   "description": "Simple Firebase Server",
   "main": "index.js",
   "scripts": {
-    "test": "grunt test"
+    "test": "npm run lint && npm run cover",
+    "cover": "istanbul cover ./node_modules/.bin/_mocha",
+    "lint": "jshint index.js lib/*.js test/*.js"
   },
   "repository": {
     "type": "git",
@@ -20,22 +22,17 @@
     "url": "https://github.com/urish/firebase-server/issues"
   },
   "homepage": "https://github.com/urish/firebase-server",
-  "config": {
-    "blanket": {
-      "pattern": [
-        "lib",
-        "index.js"
-      ],
-      "data-cover-never": "node_modules"
-    }
-  },
+  "files": [
+    "index.js",
+    "lib/*.js",
+    "CHANGELOG.md"
+  ],
   "devDependencies": {
+    "coveralls": "^2.11.4",
     "faye-websocket": "0.10.0",
     "firebase": "^2.2.5",
-    "grunt": "^0.4.5",
-    "grunt-contrib-jshint": "^0.11.2",
-    "grunt-mocha-cov": "^0.4.0",
-    "load-grunt-tasks": "^3.2.0",
+    "istanbul": "^0.4.0",
+    "jshint": "^2.8.0",
     "mocha": "^2.2.5",
     "mockery": "^1.4.0"
   },
