@@ -30,22 +30,22 @@
     "CHANGELOG.md"
   ],
   "devDependencies": {
-    "babel": "^5.8.23",
-    "bluebird": "^1.2.0",
-    "co": "^4.6.0",
-    "coveralls": "^2.11.4",
+    "babel": "5.8.23",
+    "bluebird": "2.10.2",
+    "co": "4.6.0",
+    "coveralls": "2.11.4",
     "faye-websocket": "0.10.0",
-    "firebase": "^2.2.5",
-    "istanbul": "^0.4.0",
-    "jshint": "^2.8.0",
-    "mocha": "^2.2.5",
-    "mockery": "^1.4.0"
+    "firebase": "2.3.1",
+    "istanbul": "0.4.0",
+    "jshint": "2.8.0",
+    "mocha": "2.3.3",
+    "mockery": "1.4.0"
   },
   "dependencies": {
-    "firebase-copy": "^0.1.1",
-    "lodash": "^3.10.1",
-    "native-or-bluebird": "^1.2.0",
-    "targaryen": "^1.1.4",
-    "ws": "0.7.2"
+    "firebase-copy": "0.2.0",
+    "lodash": "3.10.1",
+    "native-or-bluebird": "1.2.0",
+    "targaryen": "2.0.0",
+    "ws": "0.8.0"
   }
 }
