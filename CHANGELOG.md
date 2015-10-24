@@ -2,7 +2,17 @@
 
 ## 0.4.0 - TBD
 
+!!! BREAKING CHANGE !!!
+
+`getData()` has been removed in favor of `getValue()`, which returns a Promise instead of returning the data 
+ synchronously.
+
+All changes in this release:
+
 - Basic support for Firebase Security rules through [targaryen](https://github.com/goldibex/targaryen) (fixes [#11](https://github.com/urish/firebase-server/issues/11))
+- Switch from `MockFirebase` to the official Firebase client library ([#13](https://github.com/urish/firebase-server/pull/13), contributed by [jamestalmage](https://github.com/jamestalmage))
+- Replace the `getData()` method with a new `getValue()` method which returns a promise
+- Add an `exportData()` method for fetching the data along with priority values
 
 ## 0.3.1 - 2015-08-18
 
