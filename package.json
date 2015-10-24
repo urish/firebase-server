@@ -1,6 +1,6 @@
 {
   "name": "firebase-server",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "Simple Firebase Server",
   "main": "index.js",
   "scripts": {

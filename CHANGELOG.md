@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.4.0 - TBD
+## 0.4.0 - 2015-10-24
 
 - Basic support for Firebase Security rules through [targaryen](https://github.com/goldibex/targaryen) (fixes [#11](https://github.com/urish/firebase-server/issues/11))
 - Switch from `MockFirebase` to the official Firebase client library ([#13](https://github.com/urish/firebase-server/pull/13), contributed by [jamestalmage](https://github.com/jamestalmage))
