@@ -48,9 +48,11 @@ For more information, read the [blog post in the offical Firebase blog](https://
 FirebaseServer instances have the following API:
 
 * `close()` - Stops the server (closes the server socket) 
-* `getData()` - Returns a copy of the current data stored in the server
+* `getValue()` - Returns a promise that will be resolved with the current data on the server
+* `exportData()` - Returns a promise that will be resolved with the current data on the server, including priority values.
+	This is similar to [DataSnapshot.exportVal()](https://www.firebase.com/docs/web/api/datasnapshot/exportval.html).
 * `setRules(rules)` - Sets the security rules for the server. Uses the [targaryen](https://github.com/goldibex/targaryen) 
-	library for rule validation. 
+	library for rule validation.
 
 ### Debug logging
 
