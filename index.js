@@ -246,6 +246,15 @@ FirebaseServer.prototype = {
 		this._ruleset = new Ruleset(rules);
 	},
 
+	getData: function (ref) {
+		console.warn('FirebaseServer.getData() is deprecated! Please use FirebaseServer.getValue() instead'); // eslint-disable-line no-console
+		var result = null;
+		this.baseRef.once('value', function (snap) {
+			result = snap.val();
+		});
+		return result;
+	},
+
 	getSnap: function (ref) {
 		return getSnap(ref || this.baseRef);
 	},

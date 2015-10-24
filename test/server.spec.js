@@ -408,4 +408,20 @@ describe('Firebase Server', function () {
 			});
 		});
 	});
+
+	describe('FirebaseServer.getData()', function () {
+		it('should synchronously return the most up-to-date server data', function (done) {
+			server = new FirebaseServer(PORT);
+			var client = new Firebase(newServerUrl());
+			client.set({
+				'foo': 'bar'
+			}, function(err) {
+				assert.ok(!err, 'set() call returned an error');
+				assert.deepEqual(server.getData(), {
+					foo: 'bar'
+				});
+				done();
+			});
+		});
+	});
 });
