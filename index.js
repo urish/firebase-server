@@ -123,9 +123,6 @@ FirebaseServer.prototype = {
 		}
 
 		function handleListen(requestId, normalizedPath, fbRef) {
-			if (normalizedPath.isPriorityPath) {
-				throw new Error('I don\'t know how to listen to a priority path');
-			}
 			var path = normalizedPath.path;
 			_log('Client listen ' + path);
 
@@ -146,9 +143,6 @@ FirebaseServer.prototype = {
 		}
 
 		function handleUpdate(requestId, normalizedPath, fbRef, newData) {
-			if (normalizedPath.isPriorityPath) {
-				throw new Error('I don\'t know how to update a priority path');
-			}
 			var path = normalizedPath.path;
 			_log('Client update ' + path);
 
