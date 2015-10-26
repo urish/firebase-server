@@ -120,6 +120,26 @@ describe('Firebase Server', function () {
 				done();
 			}));
 		});
+
+		it('should support `Firebase.ServerValue.TIMESTAMP` values', function (done) {
+			server = new FirebaseServer(PORT, 'localhost:' + PORT, {
+				initialData: true,
+				firebase: 'awesome'
+			});
+			server.setTime(256256256);
+			var client = new Firebase(newServerUrl());
+			client.update({
+				'lastUpdated': Firebase.ServerValue.TIMESTAMP
+			}, co.wrap(function *(err) {
+				assert.ok(!err, 'set() call returned an error');
+				assert.deepEqual(yield server.getValue(), {
+					initialData: true,
+					firebase: 'awesome',
+					lastUpdated: 256256256
+				});
+				done();
+			}));
+		});
 	});
 
 	describe('#set', function () {
@@ -132,6 +152,21 @@ describe('Firebase Server', function () {
 				assert.ok(!err, 'set() call returned an error');
 				assert.deepEqual(yield server.getValue(), {
 					'foo': 'bar'
+				});
+				done();
+			}));
+		});
+
+		it('should support `Firebase.ServerValue.TIMESTAMP` values', function (done) {
+			server = new FirebaseServer(PORT);
+			server.setTime(50001000102);
+			var client = new Firebase(newServerUrl());
+			client.set({
+				'lastUpdated': Firebase.ServerValue.TIMESTAMP
+			}, co.wrap(function *(err) {
+				assert.ok(!err, 'set() call returned an error');
+				assert.deepEqual(yield server.getValue(), {
+					lastUpdated: 50001000102
 				});
 				done();
 			}));
@@ -479,7 +514,7 @@ describe('Firebase Server', function () {
 			var client = new Firebase(newServerUrl());
 			client.set({
 				'foo': 'bar'
-			}, function(err) {
+			}, function (err) {
 				assert.ok(!err, 'set() call returned an error');
 				assert.deepEqual(server.getData(), {
 					foo: 'bar'

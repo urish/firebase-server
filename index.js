@@ -106,6 +106,16 @@ FirebaseServer.prototype = {
 			send({d: {r: requestId, b: {s: 'permission_denied', d: 'Permission denied'}}, t: 'd'});
 		}
 
+		function replaceServerTimestamp(data) {
+			if (_.isEqual(data, server.Firebase.ServerValue.TIMESTAMP)) {
+				return server._clock();
+			} else if (_.isObject(data)) {
+				return _.mapValues(data, replaceServerTimestamp);
+			} else {
+				return data;
+			}
+		}
+
 		function ruleSnapshot(fbRef) {
 			return exportData(fbRef.root()).then(function (exportVal) {
 				return new RuleDataSnapshot(RuleDataSnapshot.convert(exportVal));
@@ -164,6 +174,8 @@ FirebaseServer.prototype = {
 			var path = normalizedPath.path;
 			_log('Client update ' + path);
 
+			newData = replaceServerTimestamp(newData);
+
 			var checkPermission = Promise.resolve(true);
 
 			if (server._ruleset) {
@@ -184,6 +196,8 @@ FirebaseServer.prototype = {
 
 			var progress = Promise.resolve(true);
 			var path = normalizedPath.path;
+
+			newData = replaceServerTimestamp(newData);
 
 			if (normalizedPath.isPriorityPath) {
 				progress = exportData(fbRef).then(function (parentData) {
