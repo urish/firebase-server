@@ -225,7 +225,7 @@ FirebaseServer.prototype = {
 					if (hash !== calculatedHash) {
 						pushData(path, snap.exportVal());
 						send({d: {r: requestId, b: {s: 'datastale', d: 'Transaction hash does not match'}}, t: 'd'});
-						throw new Error('Transaction hash does not match: ' + hash + ' !==' + calculatedHash);
+						throw new Error('Transaction hash does not match: ' + hash + ' !== ' + calculatedHash);
 					}
 				});
 			}
