@@ -37,12 +37,14 @@
     "eslint": "1.7.3",
     "faye-websocket": "0.10.0",
     "firebase": "2.3.1",
+    "firebase-token-generator": "^2.0.0",
     "istanbul": "0.4.0",
     "mocha": "2.3.3",
     "mockery": "1.4.0"
   },
   "dependencies": {
     "firebase-copy": "0.2.0",
+    "jwt-simple": "^0.3.1",
     "lodash": "3.10.1",
     "native-or-bluebird": "1.2.0",
     "targaryen": "2.0.0",
