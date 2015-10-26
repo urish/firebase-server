@@ -16,6 +16,8 @@ var assert = require('assert');
 var Firebase;
 var FirebaseServer = require('../index');
 var co = require('co');
+var TokenGenerator = require('firebase-token-generator');
+var tokenGenerator = new TokenGenerator('goodSecret');
 
 // Firebase has strict requirements about the hostname format. So we provide a dummy
 // hostname and then change the URL to localhost inside the faye-websocket's Client
@@ -311,6 +313,68 @@ describe('Firebase Server', function () {
 				});
 				done();
 			}));
+		});
+
+		it('should use custom token to deny read', function (done) {
+			server = new FirebaseServer(PORT, 'localhost:' + PORT, {
+				user1: 'foo',
+				user2: 'bar'
+			});
+
+			server.setRules({
+				rules: {
+					'$user': {
+						'.read': '$user === auth.uid'
+					}
+				}
+			});
+
+			var client = new Firebase(newServerUrl());
+			var token = tokenGenerator.createToken({uid: 'user1'});
+			client.authWithCustomToken(token, function (err) {
+				if (err) {
+					return done(err);
+				}
+				client.child('user2').on('value', function () {
+					client.off('value');
+					done(new Error('Client has read permission despite security rules'));
+				}, function (err2) {
+					assert.equal(err2.code, 'PERMISSION_DENIED');
+					done();
+				});
+			});
+		});
+
+		it('should use custom token to allow read', function (done) {
+			server = new FirebaseServer(PORT, 'localhost:' + PORT, {
+				user1: 'foo',
+				user2: 'bar'
+			});
+
+			server.setRules({
+				rules: {
+					'$user': {
+						'.read': '$user === auth.uid'
+					}
+				}
+			});
+
+			var client = new Firebase(newServerUrl());
+			var token = tokenGenerator.createToken({uid: 'user2'});
+			client.authWithCustomToken(token, function (err) {
+				if (err) {
+					return done(err);
+				}
+				client.child('user2').on('value', function (snap) {
+					client.off('value');
+					assert.equal(snap.val(), 'bar');
+					done();
+				}, function (err2) {
+					if (err2) {
+						done(err2);
+					}
+				});
+			});
 		});
 	});
 
