@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.0 - TBD
+- Add Custom Authentication ([#15](https://github.com/urish/firebase-server/pull/15), contributed by [jamestalmage](https://github.com/jamestalmage))
+- Support ServerValue.TIMESTAMP (see [#18](https://github.com/urish/firebase-server/issues/18))
+
 ## 0.4.0 - 2015-10-24
 
 - Basic support for Firebase Security rules through [targaryen](https://github.com/goldibex/targaryen) (fixes [#11](https://github.com/urish/firebase-server/issues/11))
