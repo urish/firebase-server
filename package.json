@@ -4,9 +4,8 @@
   "description": "Simple Firebase Server",
   "main": "index.js",
   "scripts": {
-    "test": "npm run lint && npm run cover && npm run test-es5",
+    "test": "npm run lint && npm run cover",
     "cover": "istanbul cover ./node_modules/mocha/bin/_mocha",
-    "test-es5": "ES5_SANITY_CHECK=1 mocha --opts test/mocha.es5.opts",
     "debug": "mocha",
     "watch": "mocha -w",
     "lint": "eslint index.js lib test"
