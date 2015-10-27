@@ -15,14 +15,7 @@ var TestableClock = require('./lib/testable-clock');
 var TokenValidator = require('./lib/token-validator');
 var Promise = require('native-or-bluebird');
 var firebaseCopy = require('firebase-copy');
-
-var loggingEnabled = false;
-
-function _log(message) {
-	if (loggingEnabled) {
-		console.log('[firebase-server] ' + message); // eslint-disable-line no-console
-	}
-}
+var _log = require('debug')('firebase-server');
 
 function getSnap(ref) {
 	return new Promise(function (resolve) {
@@ -319,10 +312,6 @@ FirebaseServer.prototype = {
 	setSecret: function (newSecret) {
 		this._tokenValidator.setSecret(newSecret);
 	}
-};
-
-FirebaseServer.enableLogging = function (value) {
-	loggingEnabled = value;
 };
 
 module.exports = FirebaseServer;
