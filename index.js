@@ -13,6 +13,7 @@ var RuleDataSnapshot = require('targaryen/lib/rule-data-snapshot');
 var firebaseHash = require('./lib/firebaseHash');
 var TestableClock = require('./lib/testable-clock');
 var TokenValidator = require('./lib/token-validator');
+var normalizePath = require('./lib/normalize-path');
 var Promise = require('native-or-bluebird');
 var firebaseCopy = require('firebase-copy');
 var _log = require('debug')('firebase-server');
@@ -29,19 +30,6 @@ function exportData(ref) {
 	return getSnap(ref).then(function (snap) {
 		return snap.exportVal();
 	});
-}
-
-function normalizePath(fullPath) {
-	var path = fullPath;
-	var isPriorityPath = /\/?\.priority$/.test(path);
-	if (isPriorityPath) {
-		path = path.replace(/\/?\.priority$/, '');
-	}
-	return {
-		isPriorityPath: isPriorityPath,
-		path: path,
-		fullPath: fullPath
-	};
 }
 
 function FirebaseServer(port, name, data) {
