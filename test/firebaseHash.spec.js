@@ -35,6 +35,22 @@ describe('#firebaseHash', function () {
 	});
 
 	it('should return correct hash for objects with a multiple keys', function () {
-		assert.equal(firebaseHash({z:1,a:'2',b:'true',c:false}), '8qk5vmuZGXWJx+77SGwjYRM0yPA=');
+		assert.equal(firebaseHash({z: 1, a: '2', b: 'true', c: false}), '8qk5vmuZGXWJx+77SGwjYRM0yPA=');
+	});
+
+	it('should return correct hash for primitive value with a numeric priority', function () {
+		assert.equal(firebaseHash({'.priority': 200, '.value': 'primitive'}), 'R9u8hs9fhRzuQ2M/3BQ0uhxz5ys=');
+	});
+
+	it('should return correct hash for primitive value a string priority', function () {
+		assert.equal(firebaseHash({'.priority': 'high', '.value': 42}), 'd/2FMFWchvDsa06RLXZhzvM9aQc=');
+	});
+
+	it('should return correct hash for objects with a numeric priority', function () {
+		assert.equal(firebaseHash({'.priority': 128.256, someKey: 'value'}), 'WYR8kBGna+a7E5x75zvhPhzACOQ=');
+	});
+
+	it('should return correct hash for objects with a string priority', function () {
+		assert.equal(firebaseHash({'.priority': 'high', someKey: 'value'}), '/KquMIGoCuKO/ipoLoQzqnU0BcI=');
 	});
 });

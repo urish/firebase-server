@@ -254,6 +254,38 @@ describe('Firebase Server', function () {
 			});
 		});
 
+		it('should successfully handle transactions for object nodes that have priority', function (done) {
+			server = new FirebaseServer(PORT, 'localhost:' + PORT, {
+				'.priority': 500,
+				doge: 'such transaction'
+			});
+			var client = new Firebase(newServerUrl());
+
+			client.transaction(function (currentData) {
+				return 'very priority';
+			}, function (error, committed, snapshot) {
+				assert.equal(error, null);
+				assert.equal(committed, true);
+				assert.deepEqual(snapshot.val(), 'very priority');
+				done();
+			});
+		});
+
+		it('should successfully handle transactions for primitive nodes that have priority', function (done) {
+			server = new FirebaseServer(PORT);
+			var client = new Firebase(newServerUrl());
+			client.setWithPriority(true, 200);
+
+			client.transaction(function (currentData) {
+				return {newValue: true};
+			}, function (error, committed, snapshot) {
+				assert.equal(error, null);
+				assert.equal(committed, true);
+				assert.deepEqual(snapshot.val(), {newValue: true});
+				done();
+			});
+		});
+
 		it('should not update the data on server if the transaction was aborted', function (done) {
 			server = new FirebaseServer(PORT, 'localhost:' + PORT, {
 				users: {

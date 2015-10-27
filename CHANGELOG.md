@@ -3,6 +3,7 @@
 ## 0.5.0 - TBD
 - Add Custom Authentication ([#15](https://github.com/urish/firebase-server/pull/15), contributed by [jamestalmage](https://github.com/jamestalmage))
 - Support ServerValue.TIMESTAMP (see [#18](https://github.com/urish/firebase-server/issues/18))
+- Bugfix: Transactions fail for nodes with priority value (see [#23](https://github.com/urish/firebase-server/issues/23))
 
 ## 0.4.0 - 2015-10-24
 
