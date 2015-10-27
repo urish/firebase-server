@@ -309,7 +309,7 @@ FirebaseServer.prototype = {
 		this._clock.setTime(newTime);
 	},
 
-	setSecret: function (newSecret) {
+	setAuthSecret: function (newSecret) {
 		this._tokenValidator.setSecret(newSecret);
 	}
 };
