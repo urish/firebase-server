@@ -76,6 +76,7 @@ The test suite uses `babel` to provide ES6 language features *for the tests only
 
 - If you are changing the API or adding features, it is **highly** recommended that
  you open an issue on GitHub to propose your change and get feedback before beginning work.
+- Check out the [open issues](https://github.com/urish/firebase-server/issues) for ideas on where to contribute.
 - Checkout a new branch based on `master` and name it to what you intend to do:
   - Example:
     ````
