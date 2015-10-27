@@ -8,10 +8,6 @@ var assert = require('assert');
 var TestableClock = require('../lib/testable-clock.js');
 
 describe('testable-clock', function () {
-	it('passes instanceOf test', function () {
-		assert(new TestableClock() instanceof TestableClock);
-	});
-
 	it('should be of type `function`', function () {
 		assert.strictEqual(typeof new TestableClock(), 'function');
 	});
