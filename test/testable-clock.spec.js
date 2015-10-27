@@ -12,11 +12,11 @@ describe('testable-clock', function () {
 		assert(new TestableClock() instanceof TestableClock);
 	});
 
-	it('is a function', function () {
+	it('should be of type `function`', function () {
 		assert.strictEqual(typeof new TestableClock(), 'function');
 	});
 
-	it('number arg locks value', function () {
+	it('should lock to a static time if set to a number', function () {
 		var clock = new TestableClock(3);
 
 		assert.strictEqual(clock(), 3);
@@ -26,7 +26,7 @@ describe('testable-clock', function () {
 		assert.strictEqual(clock(), 6);
 	});
 
-	it('function arg gets used', function () {
+	it('should accept a function that returns the current time', function () {
 		var time = 3;
 		var clock = new TestableClock(function () {
 			return time;
@@ -39,7 +39,7 @@ describe('testable-clock', function () {
 		assert.strictEqual(clock(), 6);
 	});
 
-	it('can proxy another clock', function () {
+	it('should proxy another clock', function () {
 		var clock1 = new TestableClock(3);
 		var clock2 = new TestableClock(clock1);
 
@@ -62,7 +62,7 @@ describe('testable-clock', function () {
 		assert.strictEqual(clock2(), 12);
 	});
 
-	it('falsie value gets current time', function () {
+	it('should default to the system time', function () {
 		var clock = new TestableClock();
 
 		var before = (new Date()).getTime();
@@ -73,7 +73,7 @@ describe('testable-clock', function () {
 		assert(after >= time, 'after');
 	});
 
-	it('throws on a bad value', function () {
+	it('should throw if provided bad input', function () {
 		assert.throws(function () {
 			return new TestableClock(true);
 		});
