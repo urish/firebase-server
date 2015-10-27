@@ -93,3 +93,17 @@ The test suite uses `babel` to provide ES6 language features *for the tests only
 - Make a pull request
 
 If you follow these instructions, your PR will land pretty safely in the main repo!
+
+## Inspecting the Firebase Websocket Protocol
+
+Chrome DevTools includes a very handy tool for inspecting Websocket communications, but it is a little hard to find.
+Note the highlighted selections in the screenshot below:
+
+![websocket debug screenshot](https://rawgit.com/urish/firebase-server/master/media/websocket-debug.png)
+
+1. Open the Network Tab in Chrome Dev Tools.
+2. Enable filtering and then filter by web sockets (by clicking `WS`).
+3. Select the connection you are interested in (`.ws?v=...`)
+4. Click on `Frames` to see the entire chat between the client and the server:
+
+You can match requests and responses by looking at the d.r parameter, which is the sequential request id.
