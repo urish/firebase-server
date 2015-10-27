@@ -56,14 +56,16 @@ FirebaseServer instances have the following API:
 
 ### Debug logging
 
-You can enable debug logging by calling the `enableLogging()` method:
+This project uses the excellent [`debug`](https://www.npmjs.com/package/debug) module for logging.
+It is configured by setting an environment variable:
 
-```js
-var FirebaseServer = require('firebase-server');
-
-FirebaseServer.enableLogging(true);
-// Create a FirebaseServer instance, etc.
+```sh
+$ DEBUG=* mocha                                # log everything
+$ DEBUG=firebase-server* mocha                 # log everything from firebase-server
+$ DEBUG=firebase-server:token-generator mocha  # log output from specific submodule
 ```
+
+Advanced options are available from the [`debug docs`](https://www.npmjs.com/package/debug)
 
 License
 ----
