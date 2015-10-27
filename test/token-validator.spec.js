@@ -9,8 +9,8 @@ var TokenValidator = require('../lib/token-validator');
 var TokenGenerator = require('firebase-token-generator');
 var VERSION = 0;
 
-describe('token-generator', function () {
-	it('encodes / decodes', function () {
+describe('token-validator', function () {
+	it('#decode should decode a valid token', function () {
 		var generator = new TokenGenerator('mySecret');
 		var validator = new TokenValidator('mySecret', 100 * 1000);
 
@@ -29,7 +29,7 @@ describe('token-generator', function () {
 		);
 	});
 
-	it('expires / notBefore / admin / debug / iat / simulate', function () {
+	it('#decode should include token options (e.g. iat, notBefore, expires) in decoded token', function () {
 		var generator = new TokenGenerator('someOtherSecret');
 		var validator = new TokenValidator('someOtherSecret', 250 * 1000);
 
@@ -53,7 +53,7 @@ describe('token-generator', function () {
 		);
 	});
 
-	it('normalize', function () {
+	it('#normalize should convert `nbf` and `exp` to longer form names', function () {
 		assert.deepEqual(
 			TokenValidator.normalize({
 				v: VERSION,
@@ -77,7 +77,7 @@ describe('token-generator', function () {
 		);
 	});
 
-	it('token generated with a different secret throws', function () {
+	it('#decode should throw if token has a bad signature', function () {
 		var generator = new TokenGenerator('badSecret');
 		var validator = new TokenValidator('goodSecret');
 
@@ -90,7 +90,7 @@ describe('token-generator', function () {
 		});
 	});
 
-	it('custom clockFn', function () {
+	it('should accept a custom clock function', function () {
 		var generator = new TokenGenerator('mySecret');
 		var token = generator.createToken({uid:'1'}, {iat: 100, notBefore: 200, expires: 300});
 
@@ -122,7 +122,7 @@ describe('token-generator', function () {
 		});
 	});
 
-	it('withTime', function () {
+	it('#withTime should create a new token-validator with a different testable-clock', function () {
 		var generator = new TokenGenerator('mySecret');
 		var token = generator.createToken({uid:'1'}, {iat: 100, notBefore: 200, expires: 300});
 
@@ -148,7 +148,7 @@ describe('token-generator', function () {
 		});
 	});
 
-	it('if no secret is set, do not validate signature', function () {
+	it('should not validate the signature (i.e. allow any signer), if secret is not set', function () {
 		var generator1 = new TokenGenerator('secret1');
 		var generator2 = new TokenGenerator('secret2');
 
