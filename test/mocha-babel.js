@@ -10,5 +10,7 @@ function areGeneratorsSupported() {
 }
 
 if (!areGeneratorsSupported()) {
-	require('babel/register');
+	require('babel/register')({
+		ignore: /index\.js|lib\/|node_modules/
+	});
 }
