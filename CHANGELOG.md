@@ -5,6 +5,7 @@
   [#25](https://github.com/urish/firebase-server/pull/25), [#26](https://github.com/urish/firebase-server/pull/26)
   contributed by [jamestalmage](https://github.com/jamestalmage))
 - Support ServerValue.TIMESTAMP (see [#18](https://github.com/urish/firebase-server/issues/18))
+- Use debug module instead of hand-rolled logging solution ([#28](https://github.com/urish/firebase-server/pull/28), contributed by [jamestalmage](https://github.com/jamestalmage))
 - Bugfix: Transactions fail for nodes with priority value (see [#23](https://github.com/urish/firebase-server/issues/23))
 
 ## 0.4.0 - 2015-10-24
