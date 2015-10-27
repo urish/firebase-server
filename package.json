@@ -8,6 +8,7 @@
     "cover": "istanbul cover ./node_modules/mocha/bin/_mocha -- -r test/mocha-babel.js test/*.spec.js",
     "test-es5": "mocha test/es5-only-test.js",
     "debug": "mocha -r test/mocha-babel.js test/*.spec.js",
+    "watch": "mocha -w --compilers js:./test/mocha-babel.js test/*.spec.js",
     "lint": "eslint index.js lib test"
   },
   "repository": {
@@ -40,7 +41,7 @@
     "firebase-token-generator": "^2.0.0",
     "istanbul": "0.4.0",
     "mocha": "2.3.3",
-    "mockery": "1.4.0"
+    "proxyquire": "^1.7.3"
   },
   "dependencies": {
     "firebase-copy": "0.2.0",

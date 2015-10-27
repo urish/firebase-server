@@ -10,36 +10,27 @@
 
 var PORT = 45000;
 
-var mockery = require('mockery');
 var originalWebsocket = require('faye-websocket');
-var _ = require('lodash');
 var assert = require('assert');
-
-var Firebase;
-var FirebaseServer = require('../index');
+var proxyquire = require('proxyquire');
 
 // Firebase has strict requirements about the hostname format. So we provide a dummy
 // hostname and then change the URL to localhost inside the faye-websocket's Client
 // constructor.
-var websocketMock = _.defaults({
-	Client: function (url) {
-		url = url.replace(/dummy\d+\.firebaseio\.test/i, 'localhost').replace('wss://', 'ws://');
-		return new originalWebsocket.Client(url);
+var Firebase = proxyquire('firebase', {
+	'faye-websocket': {
+		Client: function (url) {
+			url = url.replace(/dummy\d+\.firebaseio\.test/i, 'localhost').replace('wss://', 'ws://');
+			return new originalWebsocket.Client(url);
+		}
 	}
-}, originalWebsocket);
-mockery.registerMock('faye-websocket', websocketMock);
+});
+
+var FirebaseServer = require('../index');
 
 describe('ES5 Only Tests', function () {
 	var server;
 	var sequentialConnectionId = 0;
-
-	beforeEach(function () {
-		mockery.enable({
-			warnOnUnregistered: false
-		});
-
-		Firebase = require('firebase');
-	});
 
 	afterEach(function () {
 		if (server) {

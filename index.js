@@ -55,7 +55,7 @@ function FirebaseServer(port, name, data) {
 	this.Firebase = firebaseCopy();
 	this.name = name || 'mock.firebase.server';
 	this.Firebase.goOffline();
-	this.baseRef = new this.Firebase('ws://fakeserver.firebaseio.com');
+	this.baseRef = new this.Firebase('ws://fakeserver.firebaseio.test');
 
 	this.baseRef.set(data || null);
 
