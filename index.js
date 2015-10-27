@@ -13,36 +13,20 @@ var RuleDataSnapshot = require('targaryen/lib/rule-data-snapshot');
 var firebaseHash = require('./lib/firebaseHash');
 var TestableClock = require('./lib/testable-clock');
 var TokenValidator = require('./lib/token-validator');
+var DataStore = require('./lib/data-store');
 var normalizePath = require('./lib/normalize-path');
 var Promise = require('native-or-bluebird');
-var firebaseCopy = require('firebase-copy');
 var _log = require('debug')('firebase-server');
-
-function getSnap(ref) {
-	return new Promise(function (resolve) {
-		ref.once('value', function (snap) {
-			resolve(snap);
-		});
-	});
-}
-
-function exportData(ref) {
-	return getSnap(ref).then(function (snap) {
-		return snap.exportVal();
-	});
-}
+var delegate = require('delegates');
 
 function FirebaseServer(port, name, data) {
-	this.Firebase = firebaseCopy();
 	this.name = name || 'mock.firebase.server';
-	this.Firebase.goOffline();
-	this.baseRef = new this.Firebase('ws://fakeserver.firebaseio.test');
-
-	this.baseRef.set(data || null);
 
 	this._wss = new WebSocketServer({
 		port: port
 	});
+
+	this._dataStore = new DataStore(data);
 
 	this._clock = new TestableClock();
 	this._tokenValidator = new TokenValidator(null, this._clock);
@@ -98,7 +82,7 @@ FirebaseServer.prototype = {
 		}
 
 		function ruleSnapshot(fbRef) {
-			return exportData(fbRef.root()).then(function (exportVal) {
+			return server.exportData(fbRef.root()).then(function (exportVal) {
 				return new RuleDataSnapshot(RuleDataSnapshot.convert(exportVal));
 			});
 		}
@@ -160,7 +144,7 @@ FirebaseServer.prototype = {
 			var checkPermission = Promise.resolve(true);
 
 			if (server._ruleset) {
-				checkPermission = exportData(fbRef).then(function (currentData) {
+				checkPermission = server.exportData(fbRef).then(function (currentData) {
 					var mergedData = _.assign(currentData, newData);
 					return tryWrite(requestId, path, fbRef, mergedData);
 				});
@@ -181,7 +165,7 @@ FirebaseServer.prototype = {
 			newData = replaceServerTimestamp(newData);
 
 			if (normalizedPath.isPriorityPath) {
-				progress = exportData(fbRef).then(function (parentData) {
+				progress = server.exportData(fbRef).then(function (parentData) {
 					if (_.isObject(parentData)) {
 						parentData['.priority'] = newData;
 					} else {
@@ -200,7 +184,7 @@ FirebaseServer.prototype = {
 
 			if (typeof hash !== 'undefined') {
 				progress = progress.then(function () {
-					return getSnap(fbRef);
+					return server.getSnap(fbRef);
 				}).then(function (snap) {
 					var calculatedHash = firebaseHash(snap.exportVal());
 					if (hash !== calculatedHash) {
@@ -266,29 +250,6 @@ FirebaseServer.prototype = {
 		this._ruleset = new Ruleset(rules);
 	},
 
-	getData: function (ref) {
-		console.warn('FirebaseServer.getData() is deprecated! Please use FirebaseServer.getValue() instead'); // eslint-disable-line no-console
-		var result = null;
-		this.baseRef.once('value', function (snap) {
-			result = snap.val();
-		});
-		return result;
-	},
-
-	getSnap: function (ref) {
-		return getSnap(ref || this.baseRef);
-	},
-
-	getValue: function (ref) {
-		return this.getSnap(ref).then(function (snap) {
-			return snap.val();
-		});
-	},
-
-	exportData: function (ref) {
-		return exportData(ref || this.baseRef);
-	},
-
 	close: function () {
 		this._wss.close();
 	},
@@ -301,5 +262,13 @@ FirebaseServer.prototype = {
 		this._tokenValidator.setSecret(newSecret);
 	}
 };
+
+delegate(FirebaseServer.prototype, '_dataStore')
+	.method('getData')
+	.method('getSnap')
+	.method('getValue')
+	.method('exportData')
+	.getter('baseRef')
+	.getter('Firebase');
 
 module.exports = FirebaseServer;
