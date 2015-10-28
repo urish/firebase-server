@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.5.0 - TBD
+## 0.5.0 - 2015-10-28
 - Add Custom Authentication ([#15](https://github.com/urish/firebase-server/pull/15), 
   [#25](https://github.com/urish/firebase-server/pull/25), [#26](https://github.com/urish/firebase-server/pull/26)
   contributed by [jamestalmage](https://github.com/jamestalmage))
