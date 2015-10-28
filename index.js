@@ -9,7 +9,6 @@
 var _ = require('lodash');
 var WebSocketServer = require('ws').Server;
 var Ruleset = require('targaryen/lib/ruleset');
-var RuleDataSnapshot = require('targaryen/lib/rule-data-snapshot');
 var firebaseHash = require('./lib/firebaseHash');
 var TestableClock = require('./lib/testable-clock');
 var TokenValidator = require('./lib/token-validator');
@@ -20,6 +19,7 @@ var Promise = require('native-or-bluebird');
 var _log = require('debug')('firebase-server');
 var delegate = require('delegates');
 var replaceServerTimestamp = require('./lib/replace-server-timestamp');
+var AuthHandler = require('./lib/auth-handler');
 
 function FirebaseServer(port, name, data) {
 	this.name = name || 'mock.firebase.server';
@@ -40,60 +40,8 @@ function FirebaseServer(port, name, data) {
 FirebaseServer.prototype = {
 	handleConnection: function (ws) {
 		var server = this;
-		var authToken = null;
 		var _connection = new ClientConnection(ws, server);
-
-		function authData() {
-			var data;
-			if (authToken) {
-				try {
-					data = server._tokenValidator.decode(authToken).d;
-				} catch (e) {
-					authToken = null;
-				}
-			}
-			return data;
-		}
-
-		function ruleSnapshot(fbRef) {
-			return server.exportData(fbRef.root()).then(function (exportVal) {
-				return new RuleDataSnapshot(RuleDataSnapshot.convert(exportVal));
-			});
-		}
-
-		function tryRead(message, connection) {
-			var requestId = extract.requestId(message);
-			var path = extract.path(message).path;
-			var fbRef = extract.fbRef(message, connection.server.baseRef);
-			if (server._ruleset) {
-				return ruleSnapshot(fbRef).then(function (dataSnap) {
-					var result = server._ruleset.tryRead(path, dataSnap, authData());
-					if (!result.allowed) {
-						connection.permissionDenied(requestId);
-						throw new Error('Permission denied for client to read from ' + path + ': ' + result.info);
-					}
-					return true;
-				});
-			}
-			return Promise.resolve(true);
-		}
-
-		function tryWrite(message, connection, newData) {
-			var requestId = extract.requestId(message);
-			var path = extract.path(message).path;
-			var fbRef = extract.fbRef(message, connection.server.baseRef);
-			if (server._ruleset) {
-				return ruleSnapshot(fbRef).then(function (dataSnap) {
-					var result = server._ruleset.tryWrite(path, dataSnap, newData, authData());
-					if (!result.allowed) {
-						connection.permissionDenied(requestId);
-						throw new Error('Permission denied for client to write to ' + path + ': ' + result.info);
-					}
-					return true;
-				});
-			}
-			return Promise.resolve(true);
-		}
+		var authHandler = new AuthHandler(server);
 
 		function handleListen(message, connection) {
 			var requestId = extract.requestId(message);
@@ -101,7 +49,7 @@ FirebaseServer.prototype = {
 			var fbRef = extract.fbRef(message, connection.server.baseRef);
 			_log('Client listen ' + path);
 
-			tryRead(message, connection)
+			authHandler.tryRead(message, connection)
 				.then(function () {
 					var sendOk = true;
 					fbRef.on('value', function (snap) {
@@ -131,7 +79,7 @@ FirebaseServer.prototype = {
 			if (server._ruleset) {
 				checkPermission = server.exportData(fbRef).then(function (currentData) {
 					var mergedData = _.assign(currentData, newData);
-					return tryWrite(message, connection, mergedData);
+					return authHandler.tryWrite(message, connection, mergedData);
 				});
 			}
 
@@ -169,7 +117,7 @@ FirebaseServer.prototype = {
 			}
 
 			progress = progress.then(function () {
-				return tryWrite(message, connection, newData);
+				return authHandler.tryWrite(message, connection, newData);
 			});
 
 			if (typeof hash !== 'undefined') {
@@ -194,23 +142,11 @@ FirebaseServer.prototype = {
 			}).catch(_log);
 		}
 
-		function handleAuth(message, connection) {
-			var requestId = extract.requestId(message);
-			var credential = extract.credentials(message);
-			try {
-				var decoded = server._tokenValidator.decode(credential);
-				authToken = credential;
-				connection.send({t: 'd', d: {r: requestId, b: {s: 'ok', d: TokenValidator.normalize(decoded)}}});
-			} catch (e) {
-				connection.send({t: 'd', d: {r: requestId, b: {s: 'invalid_token', d: 'Could not parse auth token.'}}});
-			}
-		}
-
 		_connection.on('listen', handleListen);
 		_connection.on('query', handleListen);
 		_connection.on('update', handleUpdate);
 		_connection.on('set', handleSet);
-		_connection.on('auth', handleAuth);
+		_connection.on('auth', authHandler.handleAuth.bind(authHandler));
 
 		_connection.send({d: {t: 'h', d: {ts: new Date().getTime(), v: '5', h: this.name, s: ''}}, t: 'c'});
 	},
