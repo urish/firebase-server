@@ -14,7 +14,8 @@ var firebaseHash = require('./lib/firebaseHash');
 var TestableClock = require('./lib/testable-clock');
 var TokenValidator = require('./lib/token-validator');
 var DataStore = require('./lib/data-store');
-var normalizePath = require('./lib/normalize-path');
+var extract = require('./lib/extract');
+var ClientConnection = require('./lib/client-connection');
 var Promise = require('native-or-bluebird');
 var _log = require('debug')('firebase-server');
 var delegate = require('delegates');
@@ -37,19 +38,9 @@ function FirebaseServer(port, name, data) {
 
 FirebaseServer.prototype = {
 	handleConnection: function (ws) {
-		_log('New connection from ' + ws._socket.remoteAddress + ':' + ws._socket.remotePort);
 		var server = this;
 		var authToken = null;
-
-		function send(message) {
-			var payload = JSON.stringify(message);
-			_log('Sending message: ' + payload);
-			try {
-				ws.send(payload);
-			} catch (e) {
-				_log('Send failed: ' + e);
-			}
-		}
+		var _connection = new ClientConnection(ws, server);
 
 		function authData() {
 			var data;
@@ -61,14 +52,6 @@ FirebaseServer.prototype = {
 				}
 			}
 			return data;
-		}
-
-		function pushData(path, data) {
-			send({d: {a: 'd', b: {p: path, d: data, t: null}}, t: 'd'});
-		}
-
-		function permissionDenied(requestId) {
-			send({d: {r: requestId, b: {s: 'permission_denied', d: 'Permission denied'}}, t: 'd'});
 		}
 
 		function replaceServerTimestamp(data) {
@@ -87,12 +70,15 @@ FirebaseServer.prototype = {
 			});
 		}
 
-		function tryRead(requestId, path, fbRef) {
+		function tryRead(message, connection) {
+			var requestId = extract.requestId(message);
+			var path = extract.path(message).path;
+			var fbRef = extract.fbRef(message, connection.server.baseRef);
 			if (server._ruleset) {
 				return ruleSnapshot(fbRef).then(function (dataSnap) {
 					var result = server._ruleset.tryRead(path, dataSnap, authData());
 					if (!result.allowed) {
-						permissionDenied(requestId);
+						connection.permissionDenied(requestId);
 						throw new Error('Permission denied for client to read from ' + path + ': ' + result.info);
 					}
 					return true;
@@ -101,12 +87,15 @@ FirebaseServer.prototype = {
 			return Promise.resolve(true);
 		}
 
-		function tryWrite(requestId, path, fbRef, newData) {
+		function tryWrite(message, connection, newData) {
+			var requestId = extract.requestId(message);
+			var path = extract.path(message).path;
+			var fbRef = extract.fbRef(message, connection.server.baseRef);
 			if (server._ruleset) {
 				return ruleSnapshot(fbRef).then(function (dataSnap) {
 					var result = server._ruleset.tryWrite(path, dataSnap, newData, authData());
 					if (!result.allowed) {
-						permissionDenied(requestId);
+						connection.permissionDenied(requestId);
 						throw new Error('Permission denied for client to write to ' + path + ': ' + result.info);
 					}
 					return true;
@@ -115,28 +104,33 @@ FirebaseServer.prototype = {
 			return Promise.resolve(true);
 		}
 
-		function handleListen(requestId, normalizedPath, fbRef) {
-			var path = normalizedPath.path;
+		function handleListen(message, connection) {
+			var requestId = extract.requestId(message);
+			var path = extract.path(message).path;
+			var fbRef = extract.fbRef(message, connection.server.baseRef);
 			_log('Client listen ' + path);
 
-			tryRead(requestId, path, fbRef)
+			tryRead(message, connection)
 				.then(function () {
 					var sendOk = true;
 					fbRef.on('value', function (snap) {
 						if (snap.exportVal()) {
-							pushData(path, snap.exportVal());
+							connection.pushData(path, snap.exportVal());
 						}
 						if (sendOk) {
 							sendOk = false;
-							send({d: {r: requestId, b: {s: 'ok', d: {}}}, t: 'd'});
+							connection.send({d: {r: requestId, b: {s: 'ok', d: {}}}, t: 'd'});
 						}
 					});
 				})
 				.catch(_log);
 		}
 
-		function handleUpdate(requestId, normalizedPath, fbRef, newData) {
-			var path = normalizedPath.path;
+		function handleUpdate(message, connection) {
+			var requestId = extract.requestId(message);
+			var path = extract.path(message).path;
+			var fbRef = extract.fbRef(message, connection.server.baseRef);
+			var newData = extract.data(message);
 			_log('Client update ' + path);
 
 			newData = replaceServerTimestamp(newData);
@@ -146,17 +140,22 @@ FirebaseServer.prototype = {
 			if (server._ruleset) {
 				checkPermission = server.exportData(fbRef).then(function (currentData) {
 					var mergedData = _.assign(currentData, newData);
-					return tryWrite(requestId, path, fbRef, mergedData);
+					return tryWrite(message, connection, mergedData);
 				});
 			}
 
 			checkPermission.then(function () {
 				fbRef.update(newData);
-				send({d: {r: requestId, b: {s: 'ok', d: {}}}, t: 'd'});
+				connection.send({d: {r: requestId, b: {s: 'ok', d: {}}}, t: 'd'});
 			}).catch(_log);
 		}
 
-		function handleSet(requestId, normalizedPath, fbRef, newData, hash) {
+		function handleSet(message, connection) {
+			var requestId = extract.requestId(message);
+			var normalizedPath = extract.path(message);
+			var fbRef = extract.fbRef(message, connection.server.baseRef);
+			var newData = extract.data(message);
+			var hash = extract.hash(message);
 			_log('Client set ' + normalizedPath.fullPath);
 
 			var progress = Promise.resolve(true);
@@ -179,7 +178,7 @@ FirebaseServer.prototype = {
 			}
 
 			progress = progress.then(function () {
-				return tryWrite(requestId, path, fbRef, newData);
+				return tryWrite(message, connection, newData);
 			});
 
 			if (typeof hash !== 'undefined') {
@@ -188,8 +187,8 @@ FirebaseServer.prototype = {
 				}).then(function (snap) {
 					var calculatedHash = firebaseHash(snap.exportVal());
 					if (hash !== calculatedHash) {
-						pushData(path, snap.exportVal());
-						send({d: {r: requestId, b: {s: 'datastale', d: 'Transaction hash does not match'}}, t: 'd'});
+						connection.pushData(path, snap.exportVal());
+						connection.send({d: {r: requestId, b: {s: 'datastale', d: 'Transaction hash does not match'}}, t: 'd'});
 						throw new Error('Transaction hash does not match: ' + hash + ' !== ' + calculatedHash);
 					}
 				});
@@ -198,52 +197,31 @@ FirebaseServer.prototype = {
 			progress.then(function () {
 				fbRef.set(newData);
 				fbRef.once('value', function (snap) {
-					pushData(path, snap.exportVal());
-					send({d: {r: requestId, b: {s: 'ok', d: {}}}, t: 'd'});
+					connection.pushData(path, snap.exportVal());
+					connection.send({d: {r: requestId, b: {s: 'ok', d: {}}}, t: 'd'});
 				});
 			}).catch(_log);
 		}
 
-		function handleAuth(requestId, credential) {
+		function handleAuth(message, connection) {
+			var requestId = extract.requestId(message);
+			var credential = extract.credentials(message);
 			try {
 				var decoded = server._tokenValidator.decode(credential);
 				authToken = credential;
-				send({t: 'd', d: {r: requestId, b: {s: 'ok', d: TokenValidator.normalize(decoded)}}});
+				connection.send({t: 'd', d: {r: requestId, b: {s: 'ok', d: TokenValidator.normalize(decoded)}}});
 			} catch (e) {
-				send({t: 'd', d: {r: requestId, b: {s: 'invalid_token', d: 'Could not parse auth token.'}}});
+				connection.send({t: 'd', d: {r: requestId, b: {s: 'invalid_token', d: 'Could not parse auth token.'}}});
 			}
 		}
 
-		ws.on('message', function (data) {
-			_log('Client message: ' + data);
-			if (data === 0) {
-				return;
-			}
-			var parsed = JSON.parse(data);
-			if (parsed.t === 'd') {
-				var path;
-				if (typeof parsed.d.b.p !== 'undefined') {
-					path = parsed.d.b.p.substr(1);
-				}
-				path = normalizePath(path || '');
-				var requestId = parsed.d.r;
-				var fbRef = path.path ? this.baseRef.child(path.path) : this.baseRef;
-				if (parsed.d.a === 'l' || parsed.d.a === 'q') {
-					handleListen(requestId, path, fbRef);
-				}
-				if (parsed.d.a === 'm') {
-					handleUpdate(requestId, path, fbRef, parsed.d.b.d);
-				}
-				if (parsed.d.a === 'p') {
-					handleSet(requestId, path, fbRef, parsed.d.b.d, parsed.d.b.h);
-				}
-				if (parsed.d.a === 'auth') {
-					handleAuth(requestId, parsed.d.b.cred);
-				}
-			}
-		}.bind(this));
+		_connection.on('listen', handleListen);
+		_connection.on('query', handleListen);
+		_connection.on('update', handleUpdate);
+		_connection.on('set', handleSet);
+		_connection.on('auth', handleAuth);
 
-		send({d: {t: 'h', d: {ts: new Date().getTime(), v: '5', h: this.name, s: ''}}, t: 'c'});
+		_connection.send({d: {t: 'h', d: {ts: new Date().getTime(), v: '5', h: this.name, s: ''}}, t: 'c'});
 	},
 
 	setRules: function (rules) {
