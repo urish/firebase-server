@@ -53,6 +53,9 @@ FirebaseServer instances have the following API:
 	This is similar to [DataSnapshot.exportVal()](https://www.firebase.com/docs/web/api/datasnapshot/exportval.html).
 * `setRules(rules)` - Sets the security rules for the server. Uses the [targaryen](https://github.com/goldibex/targaryen) 
 	library for rule validation.
+* `setAuthSecret(secret)` - Sets the shared secret used for validating [Custom Authentication Tokens](https://www.firebase.com/docs/web/guide/login/custom.html).
+* `setTime(timestamp)` - Sets the server time. The server time is returned by [ServerValue.TIMESTAMP](https://www.firebase.com/docs/web/api/servervalue/timestamp.html)
+    and is also used for checking the validity of Custom Authentication Tokens.
 
 ### Debug logging
 
