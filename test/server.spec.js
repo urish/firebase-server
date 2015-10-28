@@ -463,7 +463,7 @@ describe('Firebase Server', function () {
 						});
 						done();
 					})
-					.catch(assert.fail.bind(assert));
+					.catch(done);
 			}
 
 			client.child('states/KY').setPriority(100, assertServerValues);
@@ -497,7 +497,7 @@ describe('Firebase Server', function () {
 						});
 						done();
 					})
-					.catch(assert.fail.bind(assert));
+					.catch(done);
 			}
 
 			client.child('states/KY').setWithPriority('K-tucky', 400, assertServerValues);
