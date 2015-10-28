@@ -19,6 +19,7 @@ var ClientConnection = require('./lib/client-connection');
 var Promise = require('native-or-bluebird');
 var _log = require('debug')('firebase-server');
 var delegate = require('delegates');
+var replaceServerTimestamp = require('./lib/replace-server-timestamp');
 
 function FirebaseServer(port, name, data) {
 	this.name = name || 'mock.firebase.server';
@@ -52,16 +53,6 @@ FirebaseServer.prototype = {
 				}
 			}
 			return data;
-		}
-
-		function replaceServerTimestamp(data) {
-			if (_.isEqual(data, server.Firebase.ServerValue.TIMESTAMP)) {
-				return server._clock();
-			} else if (_.isObject(data)) {
-				return _.mapValues(data, replaceServerTimestamp);
-			} else {
-				return data;
-			}
 		}
 
 		function ruleSnapshot(fbRef) {
@@ -133,7 +124,7 @@ FirebaseServer.prototype = {
 			var newData = extract.data(message);
 			_log('Client update ' + path);
 
-			newData = replaceServerTimestamp(newData);
+			newData = replaceServerTimestamp(newData, server._clock);
 
 			var checkPermission = Promise.resolve(true);
 
@@ -161,7 +152,7 @@ FirebaseServer.prototype = {
 			var progress = Promise.resolve(true);
 			var path = normalizedPath.path;
 
-			newData = replaceServerTimestamp(newData);
+			newData = replaceServerTimestamp(newData, server._clock);
 
 			if (normalizedPath.isPriorityPath) {
 				progress = server.exportData(fbRef).then(function (parentData) {
