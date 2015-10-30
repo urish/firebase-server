@@ -33,6 +33,7 @@
     "babel": "5.8.23",
     "bluebird": "2.10.2",
     "co": "4.6.0",
+    "co-mocha": "^1.1.2",
     "coveralls": "2.11.4",
     "eslint": "1.7.3",
     "faye-websocket": "0.10.0",
