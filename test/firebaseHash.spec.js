@@ -5,11 +5,11 @@
 'use strict';
 
 var assert = require('assert');
-var firebaseHash = require('../lib/firebaseHash');
+var firebaseHash = require('../lib/firebase-hash');
 
 /* global describe, it */
 
-describe('#firebaseHash', () => {
+describe('#firebase-hash', () => {
 	it('should return empty hash string for null values', () =>
 		assert.equal(firebaseHash(null), '')
 	);
