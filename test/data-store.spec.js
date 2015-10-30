@@ -6,6 +6,8 @@
 
 'use strict';
 
+/* eslint no-sync: 0 */
+
 var assert = require('assert');
 var DataStore = require('../lib/data-store');
 
