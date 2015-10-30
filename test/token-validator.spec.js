@@ -9,8 +9,8 @@ var TokenValidator = require('../lib/token-validator');
 var TokenGenerator = require('firebase-token-generator');
 var VERSION = 0;
 
-describe('token-validator', function () {
-	it('#decode should decode a valid token', function () {
+describe('token-validator', () => {
+	it('#decode should decode a valid token', () => {
 		var generator = new TokenGenerator('mySecret');
 		var validator = new TokenValidator('mySecret', 100 * 1000);
 
@@ -29,7 +29,7 @@ describe('token-validator', function () {
 		);
 	});
 
-	it('#decode should include token options (e.g. iat, notBefore, expires) in decoded token', function () {
+	it('#decode should include token options (e.g. iat, notBefore, expires) in decoded token', () => {
 		var generator = new TokenGenerator('someOtherSecret');
 		var validator = new TokenValidator('someOtherSecret', 250 * 1000);
 
@@ -53,7 +53,7 @@ describe('token-validator', function () {
 		);
 	});
 
-	it('#normalize should convert `nbf` and `exp` to longer form names', function () {
+	it('#normalize should convert `nbf` and `exp` to longer form names', () => {
 		assert.deepEqual(
 			TokenValidator.normalize({
 				v: VERSION,
@@ -77,7 +77,7 @@ describe('token-validator', function () {
 		);
 	});
 
-	it('#decode should throw if token has a bad signature', function () {
+	it('#decode should throw if token has a bad signature', () => {
 		var generator = new TokenGenerator('badSecret');
 		var validator = new TokenValidator('goodSecret');
 
@@ -85,24 +85,18 @@ describe('token-validator', function () {
 			{uid: 'expiresTest', customProperty: 'bar'}
 		);
 
-		assert.throws(function () {
-			validator.decode(token);
-		});
+		assert.throws(() => validator.decode(token));
 	});
 
-	it('should accept a custom clock function', function () {
+	it('should accept a custom clock function', () => {
 		var generator = new TokenGenerator('mySecret');
 		var token = generator.createToken({uid:'1'}, {iat: 100, notBefore: 200, expires: 300});
 
 		var time;
-		var validator = new TokenValidator('mySecret', function () {
-			return time * 1000;
-		});
+		var validator = new TokenValidator('mySecret', () => time * 1000);
 
 		time = 150;
-		assert.throws(function () {
-			validator.decode(token);
-		});
+		assert.throws(() => validator.decode(token));
 
 		time = 250;
 		assert.deepEqual(
@@ -117,20 +111,16 @@ describe('token-validator', function () {
 		);
 
 		time = 350;
-		assert.throws(function () {
-			validator.decode(token);
-		});
+		assert.throws(() => validator.decode(token));
 	});
 
-	it('#withTime should create a new token-validator with a different testable-clock', function () {
+	it('#withTime should create a new token-validator with a different testable-clock', () => {
 		var generator = new TokenGenerator('mySecret');
 		var token = generator.createToken({uid:'1'}, {iat: 100, notBefore: 200, expires: 300});
 
 		var validator = new TokenValidator('mySecret');
 
-		assert.throws(function () {
-			validator.withTime(150 * 1000).decode(token);
-		});
+		assert.throws(() => validator.withTime(150 * 1000).decode(token));
 
 		assert.deepEqual(
 			validator.withTime(250 * 1000).decode(token),
@@ -143,12 +133,10 @@ describe('token-validator', function () {
 			}
 		);
 
-		assert.throws(function () {
-			validator.withTime(350 * 1000).decode(token);
-		});
+		assert.throws(() => validator.withTime(350 * 1000).decode(token));
 	});
 
-	it('should not validate the signature (i.e. allow any signer), if secret is not set', function () {
+	it('should not validate the signature (i.e. allow any signer), if secret is not set', () => {
 		var generator1 = new TokenGenerator('secret1');
 		var generator2 = new TokenGenerator('secret2');
 
