@@ -47,6 +47,7 @@
     "debug": "^2.2.0",
     "delegates": "^0.1.0",
     "firebase-copy": "0.2.0",
+    "fireproof": "^3.0.3",
     "jwt-simple": "^0.3.1",
     "lodash": "3.10.1",
     "native-or-bluebird": "1.2.0",
