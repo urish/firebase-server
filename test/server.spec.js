@@ -24,8 +24,11 @@ var Firebase = proxyquire('firebase', {
 	}
 });
 
-var FirebaseServer = require('../index');
-var co = require('co');
+var FirebaseServer = proxyquire('../lib/server', {
+	'./data-store': proxyquire('../lib/data-store', {
+		'fireproof': null
+	})
+});
 var TokenGenerator = require('firebase-token-generator');
 var tokenGenerator = new TokenGenerator('goodSecret');
 
@@ -98,9 +101,9 @@ describe('Firebase Server', () => {
 			client.child('states').update({
 				NY: 'New York',
 				CA: 'Toronto'
-			}, co.wrap(function *(err) {
+			}, (err) => {
 				assert.ok(!err, 'update() call returned an error');
-				assert.deepEqual(yield server.getValue(), {
+				assert.deepEqual(server.sync().val(), {
 					states: {
 						NY: 'New York',
 						CA: 'Toronto',
@@ -109,7 +112,7 @@ describe('Firebase Server', () => {
 					}
 				});
 				done();
-			}));
+			});
 		});
 
 		it('should support `Firebase.ServerValue.TIMESTAMP` values', (done) => {
@@ -121,15 +124,15 @@ describe('Firebase Server', () => {
 			var client = new Firebase(newServerUrl());
 			client.update({
 				'lastUpdated': Firebase.ServerValue.TIMESTAMP
-			}, co.wrap(function *(err) {
+			}, (err) => {
 				assert.ok(!err, 'set() call returned an error');
-				assert.deepEqual(yield server.getValue(), {
+				assert.deepEqual(server.sync().val(), {
 					initialData: true,
 					firebase: 'awesome',
 					lastUpdated: 256256256
 				});
 				done();
-			}));
+			});
 		});
 	});
 
@@ -139,13 +142,13 @@ describe('Firebase Server', () => {
 			var client = new Firebase(newServerUrl());
 			client.set({
 				'foo': 'bar'
-			}, co.wrap(function *(err) {
+			}, (err) => {
 				assert.ok(!err, 'set() call returned an error');
-				assert.deepEqual(yield server.getValue(), {
+				assert.deepEqual(server.sync().val(), {
 					'foo': 'bar'
 				});
 				done();
-			}));
+			});
 		});
 
 		it('should support `Firebase.ServerValue.TIMESTAMP` values', (done) => {
@@ -154,13 +157,13 @@ describe('Firebase Server', () => {
 			var client = new Firebase(newServerUrl());
 			client.set({
 				'lastUpdated': Firebase.ServerValue.TIMESTAMP
-			}, co.wrap(function *(err) {
-				assert.ok(!err, 'set() call returned an error');
-				assert.deepEqual(yield server.getValue(), {
+			}, (err) => {
+				assert.ifError(err);
+				assert.deepEqual(server.sync().val(), {
 					lastUpdated: 50001000102
 				});
 				done();
-			}));
+			});
 		});
 	});
 
@@ -171,13 +174,13 @@ describe('Firebase Server', () => {
 				'child2': 5
 			});
 			var client = new Firebase(newServerUrl());
-			client.child('child1').remove(co.wrap(function *(err) {
-				assert.ok(!err, 'remove() call returned an error');
-				assert.deepEqual(yield server.getValue(), {
+			client.child('child1').remove((err) => {
+				assert.ifError(err);
+				assert.deepEqual(server.sync().val(), {
 					'child2': 5
 				});
 				done();
-			}));
+			});
 		});
 
 		it('should trigger a "value" event with null', (done) => {
@@ -205,13 +208,13 @@ describe('Firebase Server', () => {
 			client.child('users').child('wilma').transaction(function (currentData) {
 				assert.equal(currentData, null);
 				return {name: {first: 'Wilma', last: 'Flintstone'}};
-			}, co.wrap(function *(error, committed, snapshot) {
+			}, (error, committed, snapshot) => {
 				assert.equal(error, null);
 				assert.equal(committed, true);
 				assert.deepEqual(snapshot.val(), {name: {first: 'Wilma', last: 'Flintstone'}});
-				assert.deepEqual(yield server.getValue(), {users: {wilma: {name: {first: 'Wilma', last: 'Flintstone'}}}});
+				assert.deepEqual(server.sync().val(), {users: {wilma: {name: {first: 'Wilma', last: 'Flintstone'}}}});
 				done();
-			}));
+			});
 		});
 
 		it('should return existing data inside the updateFunction function', (done) => {
@@ -296,13 +299,13 @@ describe('Firebase Server', () => {
 				} else {
 					return undefined;
 				}
-			}, co.wrap(function *(error, committed, snapshot) {
+			}, (error, committed, snapshot) => {
 				assert.equal(error, null);
 				assert.equal(committed, false);
 				assert.deepEqual(snapshot.val(), {name: {first: 'Uri', last: 'Shaked'}});
-				assert.deepEqual(yield server.getValue(), {users: {uri: {name: {first: 'Uri', last: 'Shaked'}}}});
+				assert.deepEqual(server.sync().val(), {users: {uri: {name: {first: 'Uri', last: 'Shaked'}}}});
 				done();
-			}));
+			});
 		});
 	});
 
@@ -318,8 +321,7 @@ describe('Firebase Server', () => {
 			});
 
 			var client = new Firebase(newServerUrl());
-			client.on('value', () => {
-				client.off('value');
+			client.once('value', () => {
 				done(new Error('Client has read permission despite security rules'));
 			}, (err) => {
 				assert.equal(err.code, 'PERMISSION_DENIED');
@@ -340,14 +342,14 @@ describe('Firebase Server', () => {
 			var client = new Firebase(newServerUrl());
 			client.set({
 				'foo': 'bar'
-			}, co.wrap(function *(err) {
+			}, (err) => {
 				assert.ok(err, 'set() should have returned an error');
 				assert.equal(err.code, 'PERMISSION_DENIED');
-				assert.deepEqual(yield server.getValue(), {
+				assert.deepEqual(server.sync().val(), {
 					Firebase: 'great!'
 				});
 				done();
-			}));
+			});
 		});
 
 		it('should forbid updates when there is no write permission', (done) => {
@@ -363,14 +365,14 @@ describe('Firebase Server', () => {
 			var client = new Firebase(newServerUrl());
 			client.update({
 				'foo': 'bar'
-			}, co.wrap(function *(err) {
+			}, (err) => {
 				assert.ok(err, 'update() should have returned an error');
 				assert.equal(err.code, 'PERMISSION_DENIED');
-				assert.deepEqual(yield server.getValue(), {
+				assert.deepEqual(server.sync().val(), {
 					Firebase: 'great!'
 				});
 				done();
-			}));
+			});
 		});
 
 		it('should use custom token to deny read', (done) => {
@@ -393,10 +395,9 @@ describe('Firebase Server', () => {
 				if (err) {
 					return done(err);
 				}
-				client.child('user2').on('value', () => {
-					client.off('value');
+				client.child('user2').once('value', () => {
 					done(new Error('Client has read permission despite security rules'));
-				}, function (err2) {
+				}, (err2) => {
 					assert.equal(err2.code, 'PERMISSION_DENIED');
 					done();
 				});
@@ -423,15 +424,10 @@ describe('Firebase Server', () => {
 				if (err) {
 					return done(err);
 				}
-				client.child('user2').on('value', (snap) => {
-					client.off('value');
+				client.child('user2').once('value', (snap) => {
 					assert.equal(snap.val(), 'bar');
 					done();
-				}, function (err2) {
-					if (err2) {
-						done(err2);
-					}
-				});
+				}, done);
 			});
 		});
 	});
@@ -448,22 +444,23 @@ describe('Firebase Server', () => {
 
 			var client = new Firebase(newServerUrl());
 
-			function assertServerValues() {
-				server.exportData()
-					.then(function (exportVal) {
-						assert.deepEqual(exportVal, {
-							states: {
-								AL: 'Alabama',
-								KY: {
-									'.value': 'Kentucky',
-									'.priority': 100
-								},
-								CA: 'California'
-							}
-						});
-						done();
-					})
-					.catch(done);
+			function assertServerValues(err) {
+				if (err) {
+					return done(err);
+				}
+				server.ref().once('value', function (snap) {
+					assert.deepEqual(snap.exportVal(), {
+						states: {
+							AL: 'Alabama',
+							KY: {
+								'.value': 'Kentucky',
+								'.priority': 100
+							},
+							CA: 'California'
+						}
+					});
+					done();
+				}, done);
 			}
 
 			client.child('states/KY').setPriority(100, assertServerValues);
@@ -482,10 +479,13 @@ describe('Firebase Server', () => {
 
 			var client = new Firebase(newServerUrl());
 
-			function assertServerValues() {
-				server.exportData()
-					.then(function (exportVal) {
-						assert.deepEqual(exportVal, {
+			function assertServerValues(err) {
+				if (err) {
+					return done(err);
+				}
+				server.ref()
+					.once('value', function (snap) {
+						assert.deepEqual(snap.exportVal(), {
 							states: {
 								AL: 'Alabama',
 								KY: {
@@ -496,8 +496,7 @@ describe('Firebase Server', () => {
 							}
 						});
 						done();
-					})
-					.catch(done);
+					}, done);
 			}
 
 			client.child('states/KY').setWithPriority('K-tucky', 400, assertServerValues);
