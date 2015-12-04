@@ -47,11 +47,11 @@ For more information, read the [blog post in the offical Firebase blog](https://
 
 FirebaseServer instances have the following API:
 
-* `close()` - Stops the server (closes the server socket) 
+* `close(callback)` - Stops the server (closes the server socket) and then calls the callback
 * `getValue()` - Returns a promise that will be resolved with the current data on the server
 * `exportData()` - Returns a promise that will be resolved with the current data on the server, including priority values.
 	This is similar to [DataSnapshot.exportVal()](https://www.firebase.com/docs/web/api/datasnapshot/exportval.html).
-* `setRules(rules)` - Sets the security rules for the server. Uses the [targaryen](https://github.com/goldibex/targaryen) 
+* `setRules(rules)` - Sets the security rules for the server. Uses the [targaryen](https://github.com/goldibex/targaryen)
 	library for rule validation.
 * `setAuthSecret(secret)` - Sets the shared secret used for validating [Custom Authentication Tokens](https://www.firebase.com/docs/web/guide/login/custom.html).
 * `setTime(timestamp)` - Sets the server time. The server time is returned by [ServerValue.TIMESTAMP](https://www.firebase.com/docs/web/api/servervalue/timestamp.html)
