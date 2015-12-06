@@ -546,4 +546,15 @@ describe('Firebase Server', function () {
 			});
 		});
 	});
+
+	describe('FirebaseServer.close()', function () {
+		it('should call the callback when closed', function (done) {
+			server = new FirebaseServer(PORT);
+			setTimeout(function(){
+				server.close(function() {
+					done();
+				});
+			}, 500);
+		});
+	});
 });

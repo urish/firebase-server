@@ -301,8 +301,8 @@ FirebaseServer.prototype = {
 		return exportData(ref || this.baseRef);
 	},
 
-	close: function () {
-		this._wss.close();
+	close: function (callback) {
+		this._wss.close(callback);
 	},
 
 	setTime: function (newTime) {
