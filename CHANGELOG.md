@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.1 - 2015-12-13
+
+- Add callback on close ([#32](https://github.com/urish/firebase-server/pull/32)), contributed by [jamiemchale](https://github.com/jamiemchale))
+
 ## 0.5.0 - 2015-10-28
 - Add Custom Authentication ([#15](https://github.com/urish/firebase-server/pull/15), 
   [#25](https://github.com/urish/firebase-server/pull/25), [#26](https://github.com/urish/firebase-server/pull/26)
