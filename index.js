@@ -233,6 +233,10 @@ FirebaseServer.prototype = {
 		}
 
 		function handleAuth(requestId, credential) {
+			if (server._authSecret === credential) {
+				return send({t: 'd', d: {r: requestId, b: {s: 'ok', d: TokenValidator.normalize({ auth: null, admin: true, exp: null }) }}});
+			}
+
 			try {
 				var decoded = server._tokenValidator.decode(credential);
 				authToken = credential;
@@ -310,6 +314,7 @@ FirebaseServer.prototype = {
 	},
 
 	setAuthSecret: function (newSecret) {
+		this._authSecret = newSecret;
 		this._tokenValidator.setSecret(newSecret);
 	}
 };
