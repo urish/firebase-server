@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.5.2 - 2016-01-06
+- Support admin authentication with raw secret ([#34](https://github.com/urish/firebase-server/pull/34)), contributed by [Alaneor](https://github.com/Alaneor)) 
+
 ## 0.5.1 - 2015-12-13
 
 - Add callback on close ([#32](https://github.com/urish/firebase-server/pull/32)), contributed by [jamiemchale](https://github.com/jamiemchale))
