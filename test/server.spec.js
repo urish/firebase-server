@@ -557,4 +557,32 @@ describe('Firebase Server', function () {
 			});
 		});
 	});
+
+	describe('FirebaseServer.setAuthSecret()', function () {
+		it('should accept raw secret when handling admin authentication', function (done) {
+			server = new FirebaseServer(PORT);
+			server.setAuthSecret('test-secret');
+			var client = new Firebase(newServerUrl());
+			client.authWithCustomToken('test-secret', function (err, data) {
+				assert.ok(!err, 'authWithCustomToken() call returned an error');
+				assert.equal(data.auth, null);
+				assert.equal(data.uid, null);
+				assert.equal(data.expires, null);
+
+				done();
+			});
+		});
+
+		it('should reject invalid auth requests with raw secret', function (done) {
+			server = new FirebaseServer(PORT);
+			server.setAuthSecret('test-secret');
+			var client = new Firebase(newServerUrl());
+			client.authWithCustomToken('invalid-secret', function (err, data) {
+				assert.ok(err, 'authWithCustomToken() should have failed');
+				assert.ok(err instanceof Error);
+
+				done();
+			});
+		});
+	});
 });
