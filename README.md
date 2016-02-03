@@ -21,7 +21,7 @@ Usage Example
 ```js
 var FirebaseServer = require('firebase-server');
 
-new FirebaseServer(5000, 'test.firebaseio.com', {
+new FirebaseServer(5000, 'localhost.firebaseio.test', {
 	states: {
 		CA: 'California',
 		AL: 'Alabama',
@@ -33,13 +33,13 @@ new FirebaseServer(5000, 'test.firebaseio.com', {
 After running this server, you can create a Firebase client instance that connects to it:
 
 ```js
-var client = new Firebase('ws://test.firebaseio.com:5000');
+var client = new Firebase('ws://localhost.firebaseio.test:5000');
 client.on('value', function(snap) {
 	console.log('Got value: ', snap.val());
 });
 ```
 
-Don't forget to point the host `test.firebaseio.com` to your local IP address (in `/etc/hosts` or similar).
+Don't forget to point the host `localhost.firebaseio.test` to your local IP address (in `/etc/hosts` or similar).
 
 For more information, read the [blog post in the offical Firebase blog](https://www.firebase.com/blog/2015-04-24-end-to-end-testing-firebase-server.html).
 
