@@ -22,5 +22,3 @@ cli.main(function (args, options) {
 
 	this.ok('Listening on port ' + options.port);
 });
-
-
