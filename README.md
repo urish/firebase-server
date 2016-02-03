@@ -3,7 +3,7 @@ firebase-server
 
 Firebase Web Socket Protocol Server. Useful for emulating the Firebase server in tests.
 
-Copyright (C) 2013, 2014, 2015, Uri Shaked <uri@urish.org>
+Copyright (C) 2013, 2014, 2015, 2016, Uri Shaked <uri@urish.org>
 
 [![Build Status](https://travis-ci.org/urish/firebase-server.png?branch=master)](https://travis-ci.org/urish/firebase-server)
 [![Coverage Status](https://coveralls.io/repos/urish/firebase-server/badge.png)](https://coveralls.io/r/urish/firebase-server)
@@ -42,6 +42,17 @@ client.on('value', function(snap) {
 Don't forget to point the host `localhost.firebaseio.test` to your local IP address (in `/etc/hosts` or similar).
 
 For more information, read the [blog post in the offical Firebase blog](https://www.firebase.com/blog/2015-04-24-end-to-end-testing-firebase-server.html).
+
+### Command Line Interface
+
+This package installs a CLI script called `firebase-server`. The following command will
+start a firebase server on port 5555:
+
+	node_modules/.bin/firebase-server -p 5555
+	
+For more information, run:
+
+	node_modules/.bin/firebase-server -h
 
 ### FirebaseServer methods
 

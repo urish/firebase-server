@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.5.3 - 2016-02-03
+- Add a `firebase-server` command line tool (CLI). See [README](README.md) for details.
+
 ## 0.5.2 - 2016-01-06
 - Support admin authentication with raw secret ([#34](https://github.com/urish/firebase-server/pull/34)), contributed by [Alaneor](https://github.com/Alaneor)) 
 
