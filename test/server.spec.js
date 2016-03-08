@@ -11,6 +11,7 @@ var PORT = 45000;
 var originalWebsocket = require('faye-websocket');
 var assert = require('assert');
 var proxyquire = require('proxyquire');
+var _ = require('underscore');
 
 // Firebase has strict requirements about the hostname format. So we provide a dummy
 // hostname and then change the URL to localhost inside the faye-websocket's Client
@@ -143,6 +144,20 @@ describe('Firebase Server', function () {
 				assert.ok(!err, 'set() call returned an error');
 				assert.deepEqual(yield server.getValue(), {
 					'foo': 'bar'
+				});
+				done();
+			}));
+		});
+
+		it('should combine websocket frame chunks', function (done) {
+			server = new FirebaseServer(PORT);
+			var client = new Firebase(newServerUrl());
+			client.set({
+				'foo': _.times(2000,String)
+			}, co.wrap(function *(err) {
+				assert.ok(!err, 'set() call returned an error');
+				assert.deepEqual(yield server.getValue(), {
+					'foo': _.times(2000,String)
 				});
 				done();
 			}));
