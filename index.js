@@ -246,13 +246,32 @@ FirebaseServer.prototype = {
 			}
 		}
 
+		function accumulateFrames(data){
+			//Accumulate buffer until websocket frame is complete
+			if (typeof ws.frameBuffer == 'undefined'){
+				ws.frameBuffer = '';
+			}
+
+			try {
+				var parsed = JSON.parse(ws.frameBuffer + data);
+				ws.frameBuffer = '';
+				return parsed;
+			} catch(e) {
+				ws.frameBuffer += data;
+			}
+
+			return '';
+		}
+
 		ws.on('message', function (data) {
 			_log('Client message: ' + data);
 			if (data === 0) {
 				return;
 			}
-			var parsed = JSON.parse(data);
-			if (parsed.t === 'd') {
+
+			var parsed = accumulateFrames(data);
+
+			if (parsed && parsed.t === 'd') {
 				var path;
 				if (typeof parsed.d.b.p !== 'undefined') {
 					path = parsed.d.b.p.substr(1);
