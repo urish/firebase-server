@@ -52,7 +52,6 @@
     "lodash": "3.10.1",
     "native-or-bluebird": "1.2.0",
     "targaryen": "2.0.0",
-    "underscore": "^1.8.3",
     "ws": "0.8.1"
   }
 }

@@ -11,7 +11,7 @@ var PORT = 45000;
 var originalWebsocket = require('faye-websocket');
 var assert = require('assert');
 var proxyquire = require('proxyquire');
-var _ = require('underscore');
+var _ = require('lodash');
 
 // Firebase has strict requirements about the hostname format. So we provide a dummy
 // hostname and then change the URL to localhost inside the faye-websocket's Client
