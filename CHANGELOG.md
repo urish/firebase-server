@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.5.4 - 2016-03-08
+- Bugfix: large JSON messages spanning over several websocket frames cause errors ([#39](https://github.com/urish/firebase-server/pull/39), contributed by [abhishekgahlot](https://github.com/abhishekgahlot)) 
+
 ## 0.5.3 - 2016-02-03
 - Add a `firebase-server` command line tool (CLI). See [README](README.md) for details.
 
