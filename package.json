@@ -45,12 +45,12 @@
     "proxyquire": "^1.7.3"
   },
   "dependencies": {
+    "any-promise": "^1.1.0",
     "cli": "^0.11.1",
     "debug": "^2.2.0",
     "firebase-copy": "0.2.0",
     "jwt-simple": "^0.3.1",
     "lodash": "3.10.1",
-    "native-or-bluebird": "1.2.0",
     "targaryen": "2.0.0",
     "ws": "0.8.1"
   }
