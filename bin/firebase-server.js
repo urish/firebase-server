@@ -8,7 +8,7 @@ var debug = require('debug');
 cli.parse({
 	verbose: ['v', 'Enable verbose (debug) output'],
 	port: ['p', 'Listen on this port', 'number', 5000],
-	name: ['n', 'Hostname of the firebase server', 'name', 'localhost.firebaseio.test']
+	name: ['n', 'Hostname of the firebase server', 'string', 'localhost.firebaseio.test']
 });
 
 cli.main(function (args, options) {
