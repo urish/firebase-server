@@ -66,12 +66,7 @@ function FirebaseServer(port, name, data) {
 	var appName = 'firebase-server-internal-' + this.name + '-' + serverID++;
 	
 	// We must pass a "valid looking" configuration to initializeApp for its
-	// internal checks to pass. Also, there is no way to prevent the Firebase
-	// client attempting authentication with a Google service account - even if
-	// we immediately take the database "offline". So for this special internal
-	// client to function at all, you must stub methods in the 'https' and
-	// 'jsonwebtoken' modules as used from the 'firebase' module itself.
-	// See `server.spec.js` for an example.
+	// internal checks to pass.
 	var config = {
 		databaseURL: 'ws://fakeserver.firebaseio.test',
 		serviceAccount: {
