@@ -149,7 +149,7 @@ describe('Firebase Server', function () {
 			}));
 		});
 
-		it('should support `Firebase.ServerValue.TIMESTAMP` values', function (done) {
+		it('should support `firebase.database.ServerValue.TIMESTAMP` values', function (done) {
 			server = new FirebaseServer(PORT, 'localhost:' + PORT, {
 				initialData: true,
 				firebase: 'awesome'
@@ -157,7 +157,7 @@ describe('Firebase Server', function () {
 			server.setTime(256256256);
 			var client = newFirebaseClient();
 			client.update({
-				'lastUpdated': Firebase.ServerValue.TIMESTAMP
+				'lastUpdated': firebase.database.ServerValue.TIMESTAMP
 			}, co.wrap(function *(err) {
 				assert.ok(!err, 'set() call returned an error');
 				assert.deepEqual(yield server.getValue(), {
@@ -199,12 +199,12 @@ describe('Firebase Server', function () {
 			}));
 		});
 
-		it('should support `Firebase.ServerValue.TIMESTAMP` values', function (done) {
+		it('should support `firebase.database.ServerValue.TIMESTAMP` values', function (done) {
 			server = new FirebaseServer(PORT);
 			server.setTime(50001000102);
 			var client = newFirebaseClient();
 			client.set({
-				'lastUpdated': Firebase.ServerValue.TIMESTAMP
+				'lastUpdated': firebase.database.ServerValue.TIMESTAMP
 			}, co.wrap(function *(err) {
 				assert.ok(!err, 'set() call returned an error');
 				assert.deepEqual(yield server.getValue(), {
