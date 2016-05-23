@@ -16,7 +16,7 @@ var _ = require('lodash');
 // Firebase has strict requirements about the hostname format. So we provide a dummy
 // hostname and then change the URL to localhost inside the faye-websocket's Client
 // constructor.
-var Firebase = proxyquire('firebase', {
+var firebase = proxyquire('firebase', {
 	'faye-websocket': {
 		Client: function (url) {
 			url = url.replace(/dummy\d+\.firebaseio\.test/i, 'localhost').replace('wss://', 'ws://');
@@ -78,7 +78,7 @@ describe('Firebase Server', function () {
 				'client_email': 'fake'
 			}
 		};
-		return Firebase.initializeApp(config, name).database().ref();
+		return firebase.initializeApp(config, name).database().ref();
 	}
 
 	it('should successfully accept a client connection', function (done) {

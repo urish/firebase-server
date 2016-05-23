@@ -129,7 +129,7 @@ FirebaseServer.prototype = {
 		}
 
 		function replaceServerTimestamp(data) {
-			if (_.isEqual(data, server.Firebase.ServerValue.TIMESTAMP)) {
+			if (_.isEqual(data, firebase.database.ServerValue.TIMESTAMP)) {
 				return server._clock();
 			} else if (_.isObject(data)) {
 				return _.mapValues(data, replaceServerTimestamp);
