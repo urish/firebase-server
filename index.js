@@ -14,8 +14,14 @@ var firebaseHash = require('./lib/firebaseHash');
 var TestableClock = require('./lib/testable-clock');
 var TokenValidator = require('./lib/token-validator');
 var Promise = require('any-promise');
-var firebaseCopy = require('firebase-copy');
+var firebase = require('firebase');
 var _log = require('debug')('firebase-server');
+
+// In order to produce new Firebase clients that do not conflict with existing
+// instances of the Firebase client, each one must have a unique name.
+// We use this incrementing number to ensure that each Firebase App name we
+// create is unique.
+var serverID = 0;
 
 function getSnap(ref) {
 	return new Promise(function (resolve) {
@@ -45,10 +51,38 @@ function normalizePath(fullPath) {
 }
 
 function FirebaseServer(port, name, data) {
-	this.Firebase = firebaseCopy();
 	this.name = name || 'mock.firebase.server';
-	this.Firebase.goOffline();
-	this.baseRef = new this.Firebase('ws://fakeserver.firebaseio.test');
+
+	// Firebase is more than just a "database" now; the "realtime database" is
+	// just one of many services provided by a Firebase "App" container.
+	// The Firebase library must be initialized with an App, and that app
+	// must have a name - either a name you choose, or '[DEFAULT]' which
+	// the library will substitute for you if you do not provide one.
+	// An important aspect of App names is that multiple instances of the
+	// Firebase client with the same name will share a local cache instead of
+	// talking "through" our server. So to prevent that from happening, we are
+	// choosing a probably-unique name that a developer would not choose for
+	// their "real" Firebase client instances.
+	var appName = 'firebase-server-internal-' + this.name + '-' + serverID++;
+	
+	// We must pass a "valid looking" configuration to initializeApp for its
+	// internal checks to pass. Also, there is no way to prevent the Firebase
+	// client attempting authentication with a Google service account - even if
+	// we immediately take the database "offline". So for this special internal
+	// client to function at all, you must stub methods in the 'https' and
+	// 'jsonwebtoken' modules as used from the 'firebase' module itself.
+	// See `server.spec.js` for an example.
+	var config = {
+		databaseURL: 'ws://fakeserver.firebaseio.test',
+		serviceAccount: {
+			'private_key': 'fake',
+			'client_email': 'fake'
+		}
+	};
+	this.app = firebase.initializeApp(config, appName);
+	this.app.database().goOffline();
+	
+	this.baseRef = this.app.database().ref();
 
 	this.baseRef.set(data || null);
 
