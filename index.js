@@ -317,7 +317,7 @@ FirebaseServer.prototype = {
 				if (parsed.d.a === 'p') {
 					handleSet(requestId, path, fbRef, parsed.d.b.d, parsed.d.b.h);
 				}
-				if (parsed.d.a === 'auth') {
+				if (parsed.d.a === 'auth' || parsed.d.a === 'gauth') {
 					handleAuth(requestId, parsed.d.b.cred);
 				}
 			}

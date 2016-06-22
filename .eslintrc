@@ -8,7 +8,7 @@
 	},
 	"rules": {
 		"camelcase": 2,
-		"complexity": [2, 11],
+		"complexity": [2, 12],
 		"consistent-return": 2,
 		"curly": [2, "all"],
 		"dot-notation": 2,
