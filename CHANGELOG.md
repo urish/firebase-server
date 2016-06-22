@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.6.0 - 2016-06-22
+- Switch to Firebase 3.x. For firebase 2 support, use version 0.5.4 ([#51](https://github.com/urish/firebase-server/pull/51), contributed by [nfarina](https://github.com/nfarina))
+
 ## 0.5.4 - 2016-03-08
 - Bugfix: large JSON messages spanning over several websocket frames cause errors ([#39](https://github.com/urish/firebase-server/pull/39), contributed by [abhishekgahlot](https://github.com/abhishekgahlot)) 
 

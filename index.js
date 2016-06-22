@@ -1,5 +1,5 @@
 /*
- * firebase-server 0.5.4
+ * firebase-server 0.6.0
  * License: MIT.
  * Copyright (C) 2013, 2014, 2015, 2016, Uri Shaked.
  */
