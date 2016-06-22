@@ -38,7 +38,7 @@ firebase.INTERNAL.factories.auth = function(app, extendApp) {
 	extendApp({
 		'INTERNAL': {
 			'getToken': function() {
-				if (!authToken) {
+				if (!token) {
 					return Promise.resolve(null);
 				}
 				_listeners.forEach(function(listener) {
