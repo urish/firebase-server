@@ -1,5 +1,5 @@
 /* License: MIT.
- * Copyright (C) 2013, 2014, 2015, Uri Shaked.
+ * Copyright (C) 2013, 2014, 2015, 2016, Uri Shaked.
  */
 
 'use strict';
@@ -82,7 +82,7 @@ describe('Firebase Server', function () {
 	}
 
 	it('should successfully accept a client connection', function (done) {
-		server = new FirebaseServer(PORT, 'localhost:' + PORT);		
+		server = new FirebaseServer(PORT, 'localhost:' + PORT);
 		var client = newFirebaseClient();
 		client.once('value', function (snap) {
 			assert.equal(snap.val(), null);
