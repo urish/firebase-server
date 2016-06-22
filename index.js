@@ -64,7 +64,7 @@ function FirebaseServer(port, name, data) {
 	// choosing a probably-unique name that a developer would not choose for
 	// their "real" Firebase client instances.
 	var appName = 'firebase-server-internal-' + this.name + '-' + serverID++;
-	
+
 	// We must pass a "valid looking" configuration to initializeApp for its
 	// internal checks to pass.
 	var config = {
@@ -76,7 +76,7 @@ function FirebaseServer(port, name, data) {
 	};
 	this.app = firebase.initializeApp(config, appName);
 	this.app.database().goOffline();
-	
+
 	this.baseRef = this.app.database().ref();
 
 	this.baseRef.set(data || null);
@@ -139,7 +139,7 @@ FirebaseServer.prototype = {
 		}
 
 		function ruleSnapshot(fbRef) {
-			return exportData(fbRef.root()).then(function (exportVal) {
+			return exportData(fbRef.root).then(function (exportVal) {
 				return new RuleDataSnapshot(RuleDataSnapshot.convert(exportVal));
 			});
 		}
