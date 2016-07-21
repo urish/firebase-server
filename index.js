@@ -121,7 +121,7 @@ FirebaseServer.prototype = {
 		}
 
 		function pushData(path, data) {
-			send({d: {a: 'd', b: {p: path, d: data, t: null}}, t: 'd'});
+			send({d: {a: 'd', b: {p: path, d: data}}, t: 'd'});
 		}
 
 		function permissionDenied(requestId) {
