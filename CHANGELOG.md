@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.7.0 - 2016-08-13
+- Upgrade `ws` dependency to 1.1.1 (latest version)
+
 ## 0.6.0 - 2016-06-22
 - Switch to Firebase 3.x. For firebase 2 support, use version 0.5.4 ([#51](https://github.com/urish/firebase-server/pull/51), contributed by [nfarina](https://github.com/nfarina))
 
