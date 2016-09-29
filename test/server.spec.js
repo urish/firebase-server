@@ -77,11 +77,7 @@ describe('Firebase Server', function () {
 		var name = 'test-firebase-client-' + sequentialConnectionId;
 		var url = 'ws://dummy' + (sequentialConnectionId++) + '.firebaseio.test:' + PORT;
 		var config = {
-			databaseURL: url,
-			serviceAccount: {
-				'private_key': 'fake',
-				'client_email': 'fake'
-			}
+			databaseURL: url
 		};
 		var app = firebase.initializeApp(config, name);
 		return app.database().ref();
