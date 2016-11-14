@@ -68,11 +68,7 @@ function FirebaseServer(port, name, data) {
 	// We must pass a "valid looking" configuration to initializeApp for its
 	// internal checks to pass.
 	var config = {
-		databaseURL: 'ws://fakeserver.firebaseio.test',
-		serviceAccount: {
-			'private_key': 'fake',
-			'client_email': 'fake'
-		}
+		databaseURL: 'ws://fakeserver.firebaseio.test'
 	};
 	this.app = firebase.initializeApp(config, appName);
 	this.app.database().goOffline();
