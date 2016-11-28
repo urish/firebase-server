@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.1 - 2016-11-28
+- Fix deprecation warning with Firebase 3.6.x ([#68](https://github.com/urish/firebase-server/pull/68), contributed by [mironal](https://github.com/mironal))
+- Fix broken unit tests with Firebase >= 3.3.0
+
 ## 0.7.0 - 2016-08-13
 - Upgrade `ws` dependency to 1.1.1 (latest version)
 

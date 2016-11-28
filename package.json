@@ -1,6 +1,6 @@
 {
   "name": "firebase-server",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Simple Firebase Server",
   "main": "index.js",
   "bin": "./bin/firebase-server.js",
@@ -38,7 +38,7 @@
     "coveralls": "2.11.4",
     "eslint": "1.7.3",
     "faye-websocket": "0.10.0",
-    "firebase": "3.6.0",
+    "firebase": "3.6.1",
     "firebase-token-generator": "^2.0.0",
     "istanbul": "0.4.0",
     "mocha": "2.3.3",
