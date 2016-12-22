@@ -52,6 +52,6 @@
     "lodash": "3.10.1",
     "native-or-bluebird": "1.2.0",
     "targaryen": "2.0.0",
-    "ws": "0.8.1"
+    "ws": "1.1.1"
   }
 }
