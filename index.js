@@ -270,9 +270,9 @@ FirebaseServer.prototype = {
 			try {
 				var decoded = server._tokenValidator.decode(credential);
 				authToken = credential;
-				send({t: 'd', d: {r: requestId, b: {s: 'ok', d: TokenValidator.normalize(decoded)}}});
+				return send({t: 'd', d: {r: requestId, b: {s: 'ok', d: TokenValidator.normalize(decoded)}}});
 			} catch (e) {
-				send({t: 'd', d: {r: requestId, b: {s: 'invalid_token', d: 'Could not parse auth token.'}}});
+				return send({t: 'd', d: {r: requestId, b: {s: 'invalid_token', d: 'Could not parse auth token.'}}});
 			}
 		}
 
