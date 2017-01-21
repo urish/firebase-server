@@ -43,6 +43,11 @@ function normalizePath(fullPath) {
 	if (isPriorityPath) {
 		path = path.replace(/\/?\.priority$/, '');
 	}
+	if (path.charAt(0) === '/') {
+		// Normally, a path would start with a slash ("/"), but some clients
+		// (notably Android) don't always send it.
+		path = path.substr(1);
+	}
 	return {
 		isPriorityPath: isPriorityPath,
 		path: path,
@@ -299,7 +304,7 @@ FirebaseServer.prototype = {
 			if (parsed && parsed.t === 'd') {
 				var path;
 				if (typeof parsed.d.b.p !== 'undefined') {
-					path = parsed.d.b.p.substr(1);
+					path = parsed.d.b.p;
 				}
 				path = normalizePath(path || '');
 				var requestId = parsed.d.r;
