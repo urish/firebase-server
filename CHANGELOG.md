@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.8.0 - 2017-01-22
+- Specify firebase client library as a dependency ([#71](https://github.com/urish/firebase-server/pull/71), contributed by [crowdcst](https://github.com/crowdcst))
+- Fix compatibility with Android client (path) ([#74](https://github.com/urish/firebase-server/pull/74), contributed by [dotdoom](https://github.com/dotdoom))
+
 ## 0.7.1 - 2016-11-28
 - Fix deprecation warning with Firebase 3.6.x ([#68](https://github.com/urish/firebase-server/pull/68), contributed by [mironal](https://github.com/mironal))
 - Fix broken unit tests with Firebase >= 3.3.0
