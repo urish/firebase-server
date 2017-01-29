@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.8.1 - 2017-01-29
+- Fix dropped listener callbacks for null nodes ([#75](https://github.com/urish/firebase-server/pull/75), contributed by [bmcbarron](https://github.com/bmcbarron))
+
 ## 0.8.0 - 2017-01-22
 - Specify firebase client library as a dependency ([#71](https://github.com/urish/firebase-server/pull/71), contributed by [crowdcst](https://github.com/crowdcst))
 - Fix compatibility with Android client (path) ([#74](https://github.com/urish/firebase-server/pull/74), contributed by [dotdoom](https://github.com/dotdoom))
