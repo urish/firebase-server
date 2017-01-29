@@ -60,6 +60,7 @@ var tokenGenerator = new TokenGenerator('goodSecret');
 
 describe('Firebase Server', function () {
 	var server;
+	var sequentialPort = PORT;
 	var sequentialConnectionId = 0;
 
 	beforeEach(function() {
@@ -73,9 +74,14 @@ describe('Firebase Server', function () {
 		}
 	});
 
-	function newFirebaseClient() {
+	function newFirebaseServer(data) {
+		server = new FirebaseServer(sequentialPort, 'localhost:' + sequentialPort, data);
+		return sequentialPort++;
+	}
+
+	function newFirebaseClient(port) {
 		var name = 'test-firebase-client-' + sequentialConnectionId;
-		var url = 'ws://dummy' + (sequentialConnectionId++) + '.firebaseio.test:' + PORT;
+		var url = 'ws://dummy' + (sequentialConnectionId++) + '.firebaseio.test:' + port;
 		var config = {
 			databaseURL: url
 		};
@@ -84,8 +90,8 @@ describe('Firebase Server', function () {
 	}
 
 	it('should successfully accept a client connection', function (done) {
-		server = new FirebaseServer(PORT, 'localhost:' + PORT);
-		var client = newFirebaseClient();
+		var port = newFirebaseServer();
+		var client = newFirebaseClient(port);
 		client.once('value', function (snap) {
 			assert.equal(snap.val(), null);
 			done();
@@ -93,10 +99,10 @@ describe('Firebase Server', function () {
 	});
 
 	it('should accept initial data as the third constructor parameter', function (done) {
-		server = new FirebaseServer(PORT, 'localhost:' + PORT, {
+		var port = newFirebaseServer({
 			Firebase: 'great!'
 		});
-		var client = newFirebaseClient();
+		var client = newFirebaseClient(port);
 		client.on('value', function (snap) {
 			if (snap.val() === null) {
 				return;
@@ -110,14 +116,14 @@ describe('Firebase Server', function () {
 	});
 
 	it('should return the correct value for child nodes', function (done) {
-		server = new FirebaseServer(PORT, 'localhost:' + PORT, {
+		var port = newFirebaseServer({
 			states: {
 				CA: 'California',
 				AL: 'Alabama',
 				KY: 'Kentucky'
 			}
 		});
-		var client = newFirebaseClient();
+		var client = newFirebaseClient(port);
 		client.child('states').child('CA').once('value', function (snap) {
 			assert.equal(snap.val(), 'California');
 			done();
@@ -126,14 +132,14 @@ describe('Firebase Server', function () {
 
 	describe('#update', function () {
 		it('should update the given child', function (done) {
-			server = new FirebaseServer(PORT, 'localhost:' + PORT, {
+			var port = newFirebaseServer({
 				states: {
 					CA: 'California',
 					AL: 'Alabama',
 					KY: 'Kentucky'
 				}
 			});
-			var client = newFirebaseClient();
+			var client = newFirebaseClient(port);
 			client.child('states').update({
 				NY: 'New York',
 				CA: 'Toronto'
@@ -152,12 +158,12 @@ describe('Firebase Server', function () {
 		});
 
 		it('should support `firebase.database.ServerValue.TIMESTAMP` values', function (done) {
-			server = new FirebaseServer(PORT, 'localhost:' + PORT, {
+			var port = newFirebaseServer({
 				initialData: true,
 				firebase: 'awesome'
 			});
 			server.setTime(256256256);
-			var client = newFirebaseClient();
+			var client = newFirebaseClient(port);
 			client.update({
 				'lastUpdated': firebase.database.ServerValue.TIMESTAMP
 			}, co.wrap(function *(err) {
@@ -174,8 +180,8 @@ describe('Firebase Server', function () {
 
 	describe('#set', function () {
 		it('should update server data after calling `set()` from a client', function (done) {
-			server = new FirebaseServer(PORT);
-			var client = newFirebaseClient();
+			var port = newFirebaseServer();
+			var client = newFirebaseClient(port);
 			client.set({
 				'foo': 'bar'
 			}, co.wrap(function *(err) {
@@ -188,8 +194,8 @@ describe('Firebase Server', function () {
 		});
 
 		it('should combine websocket frame chunks', function (done) {
-			server = new FirebaseServer(PORT);
-			var client = newFirebaseClient();
+			var port = newFirebaseServer();
+			var client = newFirebaseClient(port);
 			client.set({
 				'foo': _.times(2000,String)
 			}, co.wrap(function *(err) {
@@ -202,9 +208,9 @@ describe('Firebase Server', function () {
 		});
 
 		it('should support `firebase.database.ServerValue.TIMESTAMP` values', function (done) {
-			server = new FirebaseServer(PORT);
+			var port = newFirebaseServer();
 			server.setTime(50001000102);
-			var client = newFirebaseClient();
+			var client = newFirebaseClient(port);
 			client.set({
 				'lastUpdated': firebase.database.ServerValue.TIMESTAMP
 			}, co.wrap(function *(err) {
@@ -219,11 +225,11 @@ describe('Firebase Server', function () {
 
 	describe('#remove', function () {
 		it('should remove the child', function (done) {
-			server = new FirebaseServer(PORT, 'localhost:' + PORT, {
+			var port = newFirebaseServer({
 				'child1': 1,
 				'child2': 5
 			});
-			var client = newFirebaseClient();
+			var client = newFirebaseClient(port);
 			client.child('child1').remove(co.wrap(function *(err) {
 				assert.ok(!err, 'remove() call returned an error');
 				assert.deepEqual(yield server.getValue(), {
@@ -234,27 +240,46 @@ describe('Firebase Server', function () {
 		});
 
 		it('should trigger a "value" event with null', function (done) {
-			server = new FirebaseServer(PORT, 'localhost:' + PORT, {
+			var port = newFirebaseServer({
 				'child1': 1,
 				'child2': 5
 			});
-			var client = newFirebaseClient();
-			var lastValue;
-			client.child('child1').on('value', function (snap) {
-				lastValue = snap.val();
-			});
-			client.child('child1').remove(function (err) {
-				assert.ok(!err, 'remove() call returned an error');
-				assert.deepEqual(lastValue, null);
-				done();
-			});
+			var client1 = newFirebaseClient(port);
+			var client2 = newFirebaseClient(port);
+			var removeGates = 0;
+			var doneGates = 0;
+
+			function doRemove() {
+				client1.child('child1').remove(function (err) {
+					assert.ok(!err, 'remove() call returned an error');
+					assert.ok(++doneGates <= 3);
+					if (doneGates === 3) {
+						done();
+					}
+				});
+			}
+			function onValue(snap) {
+				if (snap.val()) {
+					assert.ok(++removeGates <= 2);
+					if (removeGates === 2) {
+						doRemove();
+					}
+				} else {
+					assert.ok(++doneGates <= 3);
+					if (doneGates === 3) {
+						done();
+					}
+				}
+			}
+			client1.child('child1').on('value', onValue);
+			client2.child('child1').on('value', onValue);
 		});
 	});
 
 	describe('#transaction', function () {
 		it('should save new data to the given location', function (done) {
-			server = new FirebaseServer(PORT, 'localhost:' + PORT, {});
-			var client = newFirebaseClient();
+			var port = newFirebaseServer({});
+			var client = newFirebaseClient(port);
 			client.child('users').child('wilma').transaction(function (currentData) {
 				assert.equal(currentData, null);
 				return {name: {first: 'Wilma', last: 'Flintstone'}};
@@ -268,7 +293,7 @@ describe('Firebase Server', function () {
 		});
 
 		it('should return existing data inside the updateFunction function', function (done) {
-			server = new FirebaseServer(PORT, 'localhost:' + PORT, {
+			var port = newFirebaseServer({
 				users: {
 					uri: {
 						name: {
@@ -278,7 +303,7 @@ describe('Firebase Server', function () {
 					}
 				}
 			});
-			var client = newFirebaseClient();
+			var client = newFirebaseClient(port);
 
 			var firstTime = true;
 			client.child('users').child('uri').transaction(function (currentData) {
@@ -299,11 +324,11 @@ describe('Firebase Server', function () {
 		});
 
 		it('should successfully handle transactions for object nodes that have priority', function (done) {
-			server = new FirebaseServer(PORT, 'localhost:' + PORT, {
+			var port = newFirebaseServer({
 				'.priority': 500,
 				doge: 'such transaction'
 			});
-			var client = newFirebaseClient();
+			var client = newFirebaseClient(port);
 
 			client.transaction(function (currentData) {
 				return 'very priority';
@@ -316,8 +341,8 @@ describe('Firebase Server', function () {
 		});
 
 		it('should successfully handle transactions for primitive nodes that have priority', function (done) {
-			server = new FirebaseServer(PORT);
-			var client = newFirebaseClient();
+			var port = newFirebaseServer();
+			var client = newFirebaseClient(port);
 			client.setWithPriority(true, 200);
 
 			client.transaction(function (currentData) {
@@ -331,7 +356,7 @@ describe('Firebase Server', function () {
 		});
 
 		it('should not update the data on server if the transaction was aborted', function (done) {
-			server = new FirebaseServer(PORT, 'localhost:' + PORT, {
+			var port = newFirebaseServer({
 				users: {
 					uri: {
 						name: {
@@ -341,7 +366,7 @@ describe('Firebase Server', function () {
 					}
 				}
 			});
-			var client = newFirebaseClient();
+			var client = newFirebaseClient(port);
 
 			client.child('users').child('uri').transaction(function (currentData) {
 				if (currentData === null) {
@@ -361,7 +386,7 @@ describe('Firebase Server', function () {
 
 	describe('security rules', function () {
 		it('should forbid reading data when there is no read permission', function (done) {
-			server = new FirebaseServer(PORT, 'localhost:' + PORT, {
+			var port = newFirebaseServer({
 				Firebase: 'great!'
 			});
 			server.setRules({
@@ -370,7 +395,7 @@ describe('Firebase Server', function () {
 				}
 			});
 
-			var client = newFirebaseClient();
+			var client = newFirebaseClient(port);
 			client.on('value', function () {
 				client.off('value');
 				done(new Error('Client has read permission despite security rules'));
@@ -381,7 +406,7 @@ describe('Firebase Server', function () {
 		});
 
 		it('should forbid writing when there is no write permission', function (done) {
-			server = new FirebaseServer(PORT, 'localhost:' + PORT, {
+			var port = newFirebaseServer({
 				Firebase: 'great!'
 			});
 			server.setRules({
@@ -390,7 +415,7 @@ describe('Firebase Server', function () {
 				}
 			});
 
-			var client = newFirebaseClient();
+			var client = newFirebaseClient(port);
 			client.set({
 				'foo': 'bar'
 			}, co.wrap(function *(err) {
@@ -404,7 +429,7 @@ describe('Firebase Server', function () {
 		});
 
 		it('should forbid updates when there is no write permission', function (done) {
-			server = new FirebaseServer(PORT, 'localhost:' + PORT, {
+			var port = newFirebaseServer({
 				Firebase: 'great!'
 			});
 			server.setRules({
@@ -413,7 +438,7 @@ describe('Firebase Server', function () {
 				}
 			});
 
-			var client = newFirebaseClient();
+			var client = newFirebaseClient(port);
 			client.update({
 				'foo': 'bar'
 			}, co.wrap(function *(err) {
@@ -427,7 +452,7 @@ describe('Firebase Server', function () {
 		});
 
 		it('should use custom token to deny read', function (done) {
-			server = new FirebaseServer(PORT, 'localhost:' + PORT, {
+			var port = newFirebaseServer({
 				user1: 'foo',
 				user2: 'bar'
 			});
@@ -441,7 +466,7 @@ describe('Firebase Server', function () {
 			});
 
 			authToken = tokenGenerator.createToken({uid: 'user1'});
-			var client = newFirebaseClient();
+			var client = newFirebaseClient(port);
 			client.child('user2').on('value', function () {
 				client.off('value');
 				done(new Error('Client has read permission despite security rules'));
@@ -452,7 +477,7 @@ describe('Firebase Server', function () {
 		});
 
 		it('should use custom token to allow read', function (done) {
-			server = new FirebaseServer(PORT, 'localhost:' + PORT, {
+			var port = newFirebaseServer({
 				user1: 'foo',
 				user2: 'bar'
 			});
@@ -466,7 +491,7 @@ describe('Firebase Server', function () {
 			});
 
 			authToken = tokenGenerator.createToken({uid: 'user2'});
-			var client = newFirebaseClient();
+			var client = newFirebaseClient(port);
 			client.child('user2').on('value', function (snap) {
 				client.off('value');
 				assert.equal(snap.val(), 'bar');
@@ -481,7 +506,7 @@ describe('Firebase Server', function () {
 
 	describe('#setPriority', function () {
 		it('should update the priority value for the given child', function (done) {
-			server = new FirebaseServer(PORT, 'localhost:' + PORT, {
+			var port = newFirebaseServer({
 				states: {
 					AL: 'Alabama',
 					CA: 'California',
@@ -489,7 +514,7 @@ describe('Firebase Server', function () {
 				}
 			});
 
-			var client = newFirebaseClient();
+			var client = newFirebaseClient(port);
 
 			function assertServerValues() {
 				server.exportData()
@@ -515,7 +540,7 @@ describe('Firebase Server', function () {
 
 	describe('#setWithPriority', function () {
 		it('should update both the value and the priority value for the given child', function (done) {
-			server = new FirebaseServer(PORT, 'localhost:' + PORT, {
+			var port = newFirebaseServer({
 				states: {
 					AL: 'Alabama',
 					CA: 'California',
@@ -523,7 +548,7 @@ describe('Firebase Server', function () {
 				}
 			});
 
-			var client = newFirebaseClient();
+			var client = newFirebaseClient(port);
 
 			function assertServerValues() {
 				server.exportData()
@@ -549,7 +574,7 @@ describe('Firebase Server', function () {
 
 	describe('server priority', function () {
 		it('should be reflected when calling snapshot.exportVal() on client', function (done) {
-			server = new FirebaseServer(PORT, 'localhost:' + PORT, {
+			var port = newFirebaseServer({
 				states: {
 					AL: {
 						'.value': 'Alabama',
@@ -560,7 +585,7 @@ describe('Firebase Server', function () {
 				}
 			});
 
-			var client = newFirebaseClient();
+			var client = newFirebaseClient(port);
 			client.child('states').child('AL').on('value', function (snap) {
 				assert.deepEqual(snap.val(), 'Alabama');
 
@@ -576,8 +601,8 @@ describe('Firebase Server', function () {
 
 	describe('FirebaseServer.getData()', function () {
 		it('should synchronously return the most up-to-date server data', function (done) {
-			server = new FirebaseServer(PORT);
-			var client = newFirebaseClient();
+			var port = newFirebaseServer();
+			var client = newFirebaseClient(port);
 			client.set({
 				'foo': 'bar'
 			}, function (err) {
@@ -592,7 +617,7 @@ describe('Firebase Server', function () {
 
 	describe('FirebaseServer.close()', function () {
 		it('should call the callback when closed', function (done) {
-			server = new FirebaseServer(PORT);
+			newFirebaseServer();
 			setImmediate(function(){
 				server.close(function() {
 					done();
@@ -603,10 +628,10 @@ describe('Firebase Server', function () {
 
 	describe('FirebaseServer.setAuthSecret()', function () {
 		it('should accept raw secret when handling admin authentication', function (done) {
-			server = new FirebaseServer(PORT);
+			var port = newFirebaseServer();
 			server.setAuthSecret('test-secret');
 			authToken = 'test-secret';
-			var client = newFirebaseClient();
+			var client = newFirebaseClient(port);
 			client.once('value', function (snap) {
 				assert.equal(snap.val(), null);
 				done();
@@ -616,10 +641,10 @@ describe('Firebase Server', function () {
 		// Apparently, I haven't found a way to verify that the token was indeed reject.
 		// Thus, this test is disabled for the time being.
 		xit('should reject invalid auth requests with raw secret', function (done) {
-			server = new FirebaseServer(PORT);
+			var port = newFirebaseServer();
 			server.setAuthSecret('test-secret');
 			authToken = 'invalid-secret';
-			newFirebaseClient();
+			newFirebaseClient(port);
 			done();
 		});
 	});

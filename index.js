@@ -181,9 +181,7 @@ FirebaseServer.prototype = {
 				.then(function () {
 					var sendOk = true;
 					fbRef.on('value', function (snap) {
-						if (snap.exportVal()) {
-							pushData(path, snap.exportVal());
-						}
+						pushData(path, snap.exportVal());
 						if (sendOk) {
 							sendOk = false;
 							send({d: {r: requestId, b: {s: 'ok', d: {}}}, t: 'd'});
@@ -256,7 +254,6 @@ FirebaseServer.prototype = {
 			progress.then(function () {
 				fbRef.set(newData);
 				fbRef.once('value', function (snap) {
-					pushData(path, snap.exportVal());
 					send({d: {r: requestId, b: {s: 'ok', d: {}}}, t: 'd'});
 				});
 			}).catch(_log);
