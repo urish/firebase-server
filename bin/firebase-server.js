@@ -3,6 +3,7 @@
 'use strict';
 
 var fs = require('fs');
+var path = require('path');
 var cli = require('cli');
 var debug = require('debug');
 
@@ -22,8 +23,9 @@ cli.main(function (args, options) {
 
 	var data = {};
 	try {
-		fs.statSync(options.data); // eslint-disable-line no-sync
-		data = require(options.data);
+		var filePath = path.resolve(process.cwd(), options.data)
+		var stat = fs.statSync(filePath); // eslint-disable-line no-sync
+		data = require(filePath);
 	} catch (eFile) {
 		try {
 			data = JSON.parse(options.data);
