@@ -11,7 +11,8 @@ cli.parse({
 	verbose: ['v', 'Enable verbose (debug) output'],
 	port: ['p', 'Listen on this port', 'number', 5000],
 	name: ['n', 'Hostname of the firebase server', 'string', 'localhost.firebaseio.test'],
-	data: ['d', 'JSON String or File with JSON data to bootstrap the server with', 'string', '{}']
+	data: ['d', 'JSON String data to bootstrap the server with', 'string', '{}'],
+	file: ['f', 'JSON File to bootstrap the server with', 'file']
 });
 
 cli.main(function (args, options) {
@@ -20,18 +21,12 @@ cli.main(function (args, options) {
 	}
 
 	var FirebaseServer = require('../index.js');
-
 	var data = {};
+
 	try {
-		var filePath = path.resolve(process.cwd(), options.data)
-		var stat = fs.statSync(filePath); // eslint-disable-line no-sync
-		data = require(filePath);
-	} catch (eFile) {
-		try {
-			data = JSON.parse(options.data);
-		} catch (eJson) {
-			data = {};
-		}
+		data = JSON.parse(options.file || options.data);
+	} catch (e) {
+		console.warn('Provided content was not valid JSON');
 	}
 
 	new FirebaseServer(options.port, options.name, data); // eslint-disable-line no-new
