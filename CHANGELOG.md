@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.0 - 2017-02-06
+- Update `targaryen` dependency to 2.3.3 ([#76](https://github.com/urish/firebase-server/pull/76), contributed by [bmcbarron](https://github.com/bmcbarron))
+- Add CLI `data` / `file` parameters ([#78](https://github.com/urish/firebase-server/pull/78), contributed by [mediavrog](https://github.com/mediavrog))
+
 ## 0.8.1 - 2017-01-29
 - Fix dropped listener callbacks for null nodes ([#75](https://github.com/urish/firebase-server/pull/75), contributed by [bmcbarron](https://github.com/bmcbarron))
 
