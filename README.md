@@ -50,6 +50,13 @@ start a firebase server on port 5555:
 
 	node_modules/.bin/firebase-server -p 5555
 	
+To bootstrap the server with some data you can use the `-d,--data` or the `-f,--file` option. 
+_Note: The file option will override the data option._
+	
+	node_modules/.bin/firebase-server -d '{"foo": "bar"}'
+	
+	node_modules/.bin/firebase-server -f ./path/to/file.json
+	
 For more information, run:
 
 	node_modules/.bin/firebase-server -h
