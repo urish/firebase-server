@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.9.1 - 2017-02-16
+- Fix: CLI fails to start on Mac OS X ([#80](https://github.com/urish/firebase-server/issues/80))
+
 ## 0.9.0 - 2017-02-06
 - Update `targaryen` dependency to 2.3.3 ([#76](https://github.com/urish/firebase-server/pull/76), contributed by [bmcbarron](https://github.com/bmcbarron))
 - Add CLI `data` / `file` parameters ([#78](https://github.com/urish/firebase-server/pull/78), contributed by [mediavrog](https://github.com/mediavrog))
