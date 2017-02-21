@@ -55,7 +55,9 @@ cli.main(function (args, options) {
 
 	var server = new FirebaseServer(options.port, options.name, data); // eslint-disable-line no-new
 
-	if (rules) server.setRules(rules);
+	if (rules) {
+		server.setRules(rules);
+	}
 
 	this.ok('Listening on port ' + options.port);
 });
