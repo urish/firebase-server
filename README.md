@@ -55,7 +55,11 @@ _Note: The file option will override the data option._
 	
 	node_modules/.bin/firebase-server -d '{"foo": "bar"}'
 	
-	node_modules/.bin/firebase-server -f ./path/to/file.json
+	node_modules/.bin/firebase-server -f ./path/to/data.json
+	
+To load [Firebase Security rules](https://firebase.google.com/docs/database/security/) upon startup you can use the `-r,--rules` option. 
+	
+	node_modules/.bin/firebase-server -r ./path/to/rules.json
 	
 For more information, run:
 
