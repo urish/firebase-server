@@ -12,7 +12,8 @@ cli.parse({
 	port: ['p', 'Listen on this port', 'number', 5000],
 	name: ['n', 'Hostname of the firebase server', 'string', 'localhost.firebaseio.test'],
 	data: ['d', 'JSON data to bootstrap the server with', 'string', '{}'],
-	file: ['f', 'JSON file to bootstrap the server with', 'file']
+	file: ['f', 'JSON file to bootstrap the server with', 'file'],
+	rules: ['r', 'JSON file with security rules to load', 'file']
 });
 
 cli.main(function (args, options) {
@@ -28,7 +29,7 @@ cli.main(function (args, options) {
 			rawData = fs.readFileSync(path.resolve(process.cwd(), options.file)); // eslint-disable-line no-sync
 		} catch (e) {
 			this.output(e);
-			this.fatal('Provided file could not be read.');
+			this.fatal('Provided data file could not be read.');
 		}
 	} else {
 		rawData = options.data;
@@ -42,7 +43,19 @@ cli.main(function (args, options) {
 		this.fatal('Provided data was not valid JSON.');
 	}
 
-	new FirebaseServer(options.port, options.name, data); // eslint-disable-line no-new
+	var rules;
+	if (options.rules) {
+		try {
+			rules = fs.readFileSync(path.resolve(process.cwd(), options.rules)); // eslint-disable-line no-sync
+		} catch (e) {
+			this.output(e);
+			this.fatal('Provided rules file could not be read.');
+		}
+	}
+
+	var server = new FirebaseServer(options.port, options.name, data); // eslint-disable-line no-new
+
+	if (rules) server.setRules(rules);
 
 	this.ok('Listening on port ' + options.port);
 });
