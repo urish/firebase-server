@@ -46,7 +46,7 @@ cli.main(function (args, options) {
 	var rules;
 	if (options.rules) {
 		try {
-			rules = fs.readFileSync(path.resolve(process.cwd(), options.rules)); // eslint-disable-line no-sync
+			rules = JSON.parse(fs.readFileSync(path.resolve(process.cwd(), options.rules))); // eslint-disable-line no-sync
 		} catch (e) {
 			this.output(e);
 			this.fatal('Provided rules file could not be read.');
