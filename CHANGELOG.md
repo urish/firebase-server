@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.9.1 - 2017-02-16
+- Fix: CLI fails to start on Mac OS X ([#80](https://github.com/urish/firebase-server/issues/80))
+
+## 0.9.0 - 2017-02-06
+- Update `targaryen` dependency to 2.3.3 ([#76](https://github.com/urish/firebase-server/pull/76), contributed by [bmcbarron](https://github.com/bmcbarron))
+- Add CLI `data` / `file` parameters ([#78](https://github.com/urish/firebase-server/pull/78), contributed by [mediavrog](https://github.com/mediavrog))
+
+## 0.8.1 - 2017-01-29
+- Fix dropped listener callbacks for null nodes ([#75](https://github.com/urish/firebase-server/pull/75), contributed by [bmcbarron](https://github.com/bmcbarron))
+
 ## 0.8.0 - 2017-01-22
 - Specify firebase client library as a dependency ([#71](https://github.com/urish/firebase-server/pull/71), contributed by [crowdcst](https://github.com/crowdcst))
 - Fix compatibility with Android client (path) ([#74](https://github.com/urish/firebase-server/pull/74), contributed by [dotdoom](https://github.com/dotdoom))
