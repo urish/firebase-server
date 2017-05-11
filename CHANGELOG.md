@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.10.0 - 2017-05-11
+- Add rules option to cli ([#83](https://github.com/urish/firebase-server/pull/83), contributed by [mediavrog](https://github.com/mediavrog))
+
 ## 0.9.1 - 2017-02-16
 - Fix: CLI fails to start on Mac OS X ([#80](https://github.com/urish/firebase-server/issues/80))
 
