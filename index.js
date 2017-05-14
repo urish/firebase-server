@@ -112,14 +112,15 @@ FirebaseServer.prototype = {
 		function authData() {
 			var data;
 			if (authToken) {
-				var decodedToken;
 				try {
-					decodedToken = server._tokenValidator.decode(authToken);
+					var decodedToken = server._tokenValidator.decode(authToken);
 					if ('d' in decodedToken) {
 						data = decodedToken.d;
 					} else {
 						data = {
-							uid: decodedToken.sub,
+							// 'user_id' is firebase-specific and may be
+							// convenience only; 'sub' is standard JWT.
+							uid: decodedToken.user_id || decodedToken.sub,
 							provider: decodedToken.provider_id,
 							token: decodedToken,
 						};
