@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.10.1 - 2017-05-17
+- Properly fill in auth object for Android ([#89](https://github.com/urish/firebase-server/pull/89), contributed by [dotdoom](https://github.com/dotdoom))
+
 ## 0.10.0 - 2017-05-11
 - Add rules option to cli ([#83](https://github.com/urish/firebase-server/pull/83), contributed by [mediavrog](https://github.com/mediavrog))
 
