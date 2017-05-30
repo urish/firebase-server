@@ -13,7 +13,8 @@ cli.parse({
 	name: ['n', 'Hostname of the firebase server', 'string', 'localhost.firebaseio.test'],
 	data: ['d', 'JSON data to bootstrap the server with', 'string', '{}'],
 	file: ['f', 'JSON file to bootstrap the server with', 'file'],
-	rules: ['r', 'JSON file with security rules to load', 'file']
+	rules: ['r', 'JSON file with security rules to load', 'file'],
+	secret: ['s', 'Shared client auth token secret', 'string']
 });
 
 cli.main(function (args, options) {
@@ -57,6 +58,10 @@ cli.main(function (args, options) {
 
 	if (rules) {
 		server.setRules(rules);
+	}
+
+	if (options.secret) {
+		server.setAuthSecret(options.secret);
 	}
 
 	this.ok('Listening on port ' + options.port);
