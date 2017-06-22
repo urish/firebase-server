@@ -92,6 +92,11 @@ function HttpServer(port, db) {
     });
   }
   
+  function handleDeleteRequest(request, response, path) {
+    db.ref(path).remove()
+    writeResponse(response, null)
+  }
+  
   var server = http.createServer(function(request, response) {
     var urlParts = url.parse(request.url)
     var path = urlParts.pathname
@@ -106,6 +111,9 @@ function HttpServer(port, db) {
         break
       case 'PATCH':
         handleWriteRequest(request, response, path, 'update');
+        break
+      case 'DELETE':
+        handleDeleteRequest(request, response, path);
         break
       default:
         response.writeHead(400)
