@@ -100,6 +100,11 @@ function HttpServer(port, db) {
   var server = http.createServer(function(request, response) {
     var urlParts = url.parse(request.url)
     var path = urlParts.pathname
+    if (!path.match(/\.json$/)) {
+      response.writeHead(404)
+      response.end()
+      return
+    }
     path = path.replace(/\.json$/, '')
     console.log(request.method + ' ' + path)
     switch (request.method) {
