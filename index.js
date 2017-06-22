@@ -16,6 +16,8 @@ var TokenValidator = require('./lib/token-validator');
 var Promise = require('any-promise');
 var firebase = require('firebase');
 var _log = require('debug')('firebase-server');
+var http = require('http');
+var url = require('url');
 
 // In order to produce new Firebase clients that do not conflict with existing
 // instances of the Firebase client, each one must have a unique name.
@@ -55,6 +57,66 @@ function normalizePath(fullPath) {
 	};
 }
 
+function HttpServer(port, db) {
+  function read(path, cb) {
+    db.ref(path).once('value').then(cb)
+  }
+  
+  function writeResponse(response, payload) {
+    response.writeHead(200, {"Content-Type": "application/json"})
+    response.write(JSON.stringify(payload))
+    response.end()
+  }
+  
+  function handleReadRequest(request, response, path) {
+    read(path, function(snapshot) {
+      writeResponse(response, snapshot.val())
+    })
+  }
+  
+  function handleWriteRequest(request, response, path, writeMethod) {
+    var body = ''
+    request.on('data', function(data) {
+      body += data
+      if (body.length > 1e6)
+        request.connection.destroy();
+    })
+    request.on('end', function () {
+      var payload = JSON.parse(body);
+      db.ref(path)[writeMethod](payload)
+      if (writeMethod == 'update') {
+        read(path, function(snapshot) { writeResponse(response, snapshot.val()) })
+      } else {
+        writeResponse(response, payload)
+      }
+    });
+  }
+  
+  var server = http.createServer(function(request, response) {
+    var urlParts = url.parse(request.url)
+    var path = urlParts.pathname
+    path = path.replace(/\.json$/, '')
+    console.log(request.method + ' ' + path)
+    switch (request.method) {
+      case 'GET':
+        handleReadRequest(request, response, path);
+        break
+      case 'PUT':
+        handleWriteRequest(request,response,  path, 'set');
+        break
+      case 'PATCH':
+        handleWriteRequest(request, response, path, 'update');
+        break
+      default:
+        response.writeHead(400)
+        response.end()
+    }
+  });
+  
+  server.listen(port, '0.0.0.0');        
+  return server;
+}
+
 function FirebaseServer(port, name, data) {
 	this.name = name || 'mock.firebase.server';
 
@@ -82,70 +144,10 @@ function FirebaseServer(port, name, data) {
 	this.baseRef = this.app.database().ref();
 
 	this.baseRef.set(data || null);
-
-var http = require('http');
-        var url = require('url')
-var server = http.createServer(function(request, response) {
-  var urlParts = url.parse(request.url)
-  var path = urlParts.pathname
-  path = path.replace('.json', '')
-  //console.log(urlParts)
-  switch (request.method) {
-    case 'GET':
-    var payload = db.ref(path).once('value').then(function(snapshot) {
-      response.writeHead(200, {"Content-Type": "application/json"})
-      response.write(JSON.stringify(snapshot.val()))
-      response.end()
-      console.log('get ' + path)
-    })
-    break
-    case 'PUT':
-    var body = ''
-      request.on('data', function(data) {
-        body += data
-        if (body.length > 1e6)
-                request.connection.destroy();
-      })
-        request.on('end', function () {
-          //console.log('hm')
-            var payload = JSON.parse(body);
-            console.log(payload)
-    db.ref(path).set(payload)
-      response.writeHead(200, {"Content-Type": "application/json"})
-      response.write(body)
-      response.end()
-        });
         
-      console.log('put')
-    break
-    case 'PATCH':
-    var body = ''
-      request.on('data', function(data) {
-        body += data
-        if (body.length > 1e6)
-                request.connection.destroy();
-      })
-        request.on('end', function () {
-          //console.log('hm')
-            var payload = JSON.parse(body);
-            console.log(payload)
-    db.ref(path).update(payload)
-      response.writeHead(200, {"Content-Type": "application/json"})
-      response.write(body)
-      response.end()
-        });
-      
-        console.log('patch')
-    break
-    default:
-      console.log('???')
-  }
-  //console.log(request);
-});
-server.listen(port, '0.0.0.0');        
-        
+        this._https = new HttpServer(port, db);
 	this._wss = new WebSocketServer({
-		server: server
+		server: this._https
 	});
 
 	this._clock = new TestableClock();
