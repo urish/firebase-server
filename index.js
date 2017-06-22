@@ -78,12 +78,74 @@ function FirebaseServer(port, name, data) {
 	this.app = firebase.initializeApp(config, appName);
 	this.app.database().goOffline();
 
+        var db = this.app.database()
 	this.baseRef = this.app.database().ref();
 
 	this.baseRef.set(data || null);
 
+var http = require('http');
+        var url = require('url')
+var server = http.createServer(function(request, response) {
+  var urlParts = url.parse(request.url)
+  var path = urlParts.pathname
+  path = path.replace('.json', '')
+  //console.log(urlParts)
+  switch (request.method) {
+    case 'GET':
+    var payload = db.ref(path).once('value').then(function(snapshot) {
+      response.writeHead(200, {"Content-Type": "application/json"})
+      response.write(JSON.stringify(snapshot.val()))
+      response.end()
+      console.log('get ' + path)
+    })
+    break
+    case 'PUT':
+    var body = ''
+      request.on('data', function(data) {
+        body += data
+        if (body.length > 1e6)
+                request.connection.destroy();
+      })
+        request.on('end', function () {
+          //console.log('hm')
+            var payload = JSON.parse(body);
+            console.log(payload)
+    db.ref(path).set(payload)
+      response.writeHead(200, {"Content-Type": "application/json"})
+      response.write(body)
+      response.end()
+        });
+        
+      console.log('put')
+    break
+    case 'PATCH':
+    var body = ''
+      request.on('data', function(data) {
+        body += data
+        if (body.length > 1e6)
+                request.connection.destroy();
+      })
+        request.on('end', function () {
+          //console.log('hm')
+            var payload = JSON.parse(body);
+            console.log(payload)
+    db.ref(path).update(payload)
+      response.writeHead(200, {"Content-Type": "application/json"})
+      response.write(body)
+      response.end()
+        });
+      
+        console.log('patch')
+    break
+    default:
+      console.log('???')
+  }
+  //console.log(request);
+});
+server.listen(port, '0.0.0.0');        
+        
 	this._wss = new WebSocketServer({
-		port: port
+		server: server
 	});
 
 	this._clock = new TestableClock();
