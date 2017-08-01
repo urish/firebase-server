@@ -170,6 +170,20 @@ FirebaseServer.prototype = {
 			return Promise.resolve(true);
 		}
 
+		function tryPatch(requestId, path, fbRef, newData) {
+			if (server._ruleset) {
+				return ruleSnapshot(fbRef).then(function (dataSnap) {
+					var result = server._ruleset.tryPatch(path, dataSnap, newData, authData());
+					if (!result.allowed) {
+						permissionDenied(requestId);
+						throw new Error('Permission denied for client to update at ' + path + ': ' + result.info);
+					}
+					return true;
+				});
+			}
+			return Promise.resolve(true);
+		}
+
 		function tryWrite(requestId, path, fbRef, newData) {
 			if (server._ruleset) {
 				return ruleSnapshot(fbRef).then(function (dataSnap) {
@@ -212,8 +226,8 @@ FirebaseServer.prototype = {
 
 			if (server._ruleset) {
 				checkPermission = exportData(fbRef).then(function (currentData) {
-					var mergedData = _.assign(currentData, newData);
-					return tryWrite(requestId, path, fbRef, mergedData);
+					var mergedData = _.assign(currentData || {}, newData);
+					return tryPatch(requestId, path, fbRef, mergedData);
 				});
 			}
 
