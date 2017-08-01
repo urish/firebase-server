@@ -451,6 +451,46 @@ describe('Firebase Server', function () {
 			}));
 		});
 
+		it('should allow updates to children with different paths', function (done) {
+			var port = newFirebaseServer({
+				directories: {
+					alice: 'great!'
+				}
+			});
+			server.setRules({
+				rules: {
+					'.write': false,
+					users: {
+						'.write': true
+					},
+					directories: {
+						'.write': true
+					}
+				}
+			});
+
+			var client = newFirebaseClient(port);
+			client.update({
+				'users/bob': 'foo',
+				'directories/bob': 'bar',
+			}, co.wrap(function *(err) {
+				if (err) {
+					done(err);
+					return;
+				}
+				assert.deepEqual(yield server.getValue(), {
+					users: {
+						bob: 'foo'
+					},
+					directories: {
+						bob: 'bar',
+						alice: 'great!'
+					}
+				});
+				done();
+			}));
+		});
+
 		it('should use custom token to deny read', function (done) {
 			var port = newFirebaseServer({
 				user1: 'foo',
