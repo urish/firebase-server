@@ -55,7 +55,7 @@ function normalizePath(fullPath) {
 	};
 }
 
-function FirebaseServer(port, name, data) {
+function FirebaseServer(portOrOptions, name, data) {
 	this.name = name || 'mock.firebase.server';
 
 	// Firebase is more than just a "database" now; the "realtime database" is
@@ -82,9 +82,23 @@ function FirebaseServer(port, name, data) {
 
 	this.baseRef.set(data || null);
 
-	this._wss = new WebSocketServer({
-		port: port
-	});
+	var port = portOrOptions;
+	if (typeof portOrOptions === 'object') {
+		this._wss = new WebSocketServer(portOrOptions);
+		if (portOrOptions.server) {
+			var address = portOrOptions.server.address();
+			if (address) {
+				port = address.port;
+			}
+		} else {
+			port = portOrOptions.port;
+		}
+	} else {
+		this._wss = new WebSocketServer({
+			port: portOrOptions
+		});
+		port = portOrOptions;
+	}
 
 	this._clock = new TestableClock();
 	this._tokenValidator = new TokenValidator(null, this._clock);

@@ -10,6 +10,7 @@ var PORT = 45000;
 
 var originalWebsocket = require('faye-websocket');
 var assert = require('assert');
+var http = require('http');
 var proxyquire = require('proxyquire');
 var _ = require('lodash');
 
@@ -88,6 +89,22 @@ describe('Firebase Server', function () {
 		var app = firebase.initializeApp(config, name);
 		return app.database().ref();
 	}
+
+	it('should successfully use an existing http.Server', function (done) {
+		var httpServer = http.createServer();
+		httpServer.listen(sequentialPort);
+		var fbServer = new FirebaseServer({server: httpServer}, 'localhost:' + sequentialPort);
+		sequentialPort++;
+		fbServer.close(function () {
+			httpServer.close(done);
+		});
+	});
+
+	it('should successfully use port within options', function (done) {
+		var fbServer = new FirebaseServer({port: sequentialPort}, 'localhost:' + sequentialPort);
+		sequentialPort++;
+		fbServer.close(done);
+	});
 
 	it('should successfully accept a client connection', function (done) {
 		var port = newFirebaseServer();

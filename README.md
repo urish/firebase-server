@@ -67,6 +67,13 @@ For more information, run:
 
 ### FirebaseServer methods
 
+The constructor signature is `FirebaseServer(portOrOptions, name, data)` where
+`portOrOptions` is either a port number or a
+[`WebSocket.Server`](https://github.com/websockets/ws/blob/master/doc/ws.md#new-websocketserveroptions-callback)
+options object with either `port` or `server` set. `name` is optional and is
+just used to report the server name to clients. `data` is the initial contents
+of the database.
+
 FirebaseServer instances have the following API:
 
 * `close(callback)` - Stops the server (closes the server socket) and then calls the callback
