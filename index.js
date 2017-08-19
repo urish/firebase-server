@@ -210,6 +210,7 @@ FirebaseServer.prototype = {
 			var sendOk = true;
 			fbRef.on('value', function (snap) {
 				// BUG: tryRead() here, and if it throws, cancel the listener.
+				// See https://github.com/urish/firebase-server/pull/100#issuecomment-323509408
 				pushData(path, snap.exportVal());
 				if (sendOk) {
 					sendOk = false;
