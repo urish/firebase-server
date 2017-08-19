@@ -61,6 +61,10 @@ To load [Firebase Security rules](https://firebase.google.com/docs/database/secu
 
 	node_modules/.bin/firebase-server -r ./path/to/rules.json
 
+You can also specify a shared client auth token secret with the `-s` argument:
+
+	node_modules/.bin/firebase-server -s some-shared-secret
+
 For more information, run:
 
 	node_modules/.bin/firebase-server -h
