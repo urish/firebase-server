@@ -50,7 +50,7 @@
     "firebase": "3.6.1",
     "jwt-simple": "0.3.1",
     "lodash": "3.10.1",
-    "targaryen": "2.3.3",
+    "targaryen": "3.0.1",
     "ws": "1.1.1"
   }
 }
