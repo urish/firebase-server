@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.11.0 - 2017-08-19
+- Migrate to Targaryen 3 ([#100](https://github.com/urish/firebase-server/pull/100), contributed by [dotdoom](https://github.com/dotdoom))
+- Support passing a WebSocket.Server options object to the FirebaseServer constructor ([#101](https://github.com/urish/firebase-server/pull/101), contributed by [tommie](https://github.com/tommie))
+- Fix security rules validation for updates ([#99](https://github.com/urish/firebase-server/pull/99), contributed by [dotdoom](https://github.com/dotdoom))
+- Add support for -s option (shared auth secret) ([#91](https://github.com/urish/firebase-server/pull/91), contributed by [dchaley](https://github.com/dchaley))
+
 ## 0.10.1 - 2017-05-17
 - Properly fill in auth object for Android ([#89](https://github.com/urish/firebase-server/pull/89), contributed by [dotdoom](https://github.com/dotdoom))
 
