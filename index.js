@@ -88,23 +88,27 @@ function FirebaseServer(portOrOptions, name, data) {
 		}
 	}, data);
 
-	var port = portOrOptions;
+	var options, port;
 	if (typeof portOrOptions === 'object') {
-		this._wss = new WebSocketServer(portOrOptions);
-		if (portOrOptions.server) {
-			var address = portOrOptions.server.address();
+		options = portOrOptions;
+		if (options.server) {
+			var address = options.server.address();
 			if (address) {
 				port = address.port;
+			} else if (options.port) {
+				port = options.port;
+			} else {
+				throw new Error('Port not given in options and also not obtainable from server');
 			}
 		} else {
-			port = portOrOptions.port;
+			port = options.port;
 		}
 	} else {
-		this._wss = new WebSocketServer({
-			port: portOrOptions
-		});
 		port = portOrOptions;
+		options = {port: port};
 	}
+
+	this._wss = new WebSocketServer(options);
 
 	this._clock = new TestableClock();
 	this._tokenValidator = new TokenValidator(null, this._clock);
