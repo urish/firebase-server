@@ -15,6 +15,7 @@ var Promise = require('any-promise');
 var firebase = require('firebase');
 var targaryen = require('targaryen');
 var _log = require('debug')('firebase-server');
+var HttpServer = require('./lib/http-server')
 
 // In order to produce new Firebase clients that do not conflict with existing
 // instances of the Firebase client, each one must have a unique name.
@@ -89,10 +90,11 @@ function FirebaseServer(portOrOptions, name, data) {
 	}, data);
 
 	if (typeof portOrOptions === 'object' && portOrOptions.server) {
-          throw new Exception('Cannot give server option with http server')
+          throw new Error('Cannot give server option with http server')
         } else {
 	var https = new HttpServer(port, this.app.database());
           if (typeof portOrOptions !== 'object') {
+            console.log(JSON.stringify(portOrOptions))
           portOrOptions = {port: portOrOptions}
         }
           portOrOptions.server = https
