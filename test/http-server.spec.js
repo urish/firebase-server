@@ -141,6 +141,18 @@ describe('Firebase HTTP Server', function () {
                 })
             .catch(assert.fail.bind(assert));
                 });
+                it('overwrites unspecified keys', function(done) {
+                    var port = newFirebaseServer({d: 'e'})
+                    var client = newFirebaseClient(port);
+            fetch('http://localhost:' + port + '/.json', {method: 'PUT', body: JSON.stringify({a: 'b'})})
+            .then(function(resp) {
+                client.once('value', function(snap) {
+                    assert.deepEqual(snap.val(), {a: 'b'});
+                    done()
+                })
+                })
+            .catch(assert.fail.bind(assert));
+                });
                 });
             context('at subpath', function() {
                 it('stores data', function(done) {
