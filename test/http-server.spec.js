@@ -126,5 +126,36 @@ describe('Firebase HTTP Server', function () {
 	});
 	});
 	});
+        
+        describe('put', function() {
+            context('at root', function() {
+                it('stores data', function(done) {
+                    var port = newFirebaseServer({})
+                    var client = newFirebaseClient(port);
+            fetch('http://localhost:' + port + '/.json', {method: 'PUT', body: JSON.stringify({a: 'b'})})
+            .then(function(resp) {
+                client.once('value', function(snap) {
+                    assert.deepEqual(snap.val(), {a: 'b'});
+                    done()
+                })
+                })
+            .catch(assert.fail.bind(assert));
+                });
+                });
+            context('at subpath', function() {
+                it('stores data', function(done) {
+                    var port = newFirebaseServer({})
+                    var client = newFirebaseClient(port);
+            fetch('http://localhost:' + port + '/test.json', {method: 'PUT', body: JSON.stringify({a: 'b'})})
+            .then(function(resp) {
+                client.once('value', function(snap) {
+                    assert.deepEqual(snap.val(), {test: {a: 'b'}});
+                    done()
+                })
+                })
+            .catch(assert.fail.bind(assert));
+                });
+                });
+                });
     })
 });
