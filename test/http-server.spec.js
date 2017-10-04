@@ -91,48 +91,48 @@ describe('Firebase HTTP Server', function () {
 		context('root json', function() {
 			context('empty dataset', function() {
 				it('returns empty hash', function (done) {
-															var port = newFirebaseServer({});
-															fetch('http://localhost:' + port + '/.json')
+					var port = newFirebaseServer({});
+					fetch('http://localhost:' + port + '/.json')
 						.then(function(resp) { return resp.json(); })
 						.then(function(payload) {
 							assert.deepEqual(payload, {});
 							done();
 						})
 						.catch(assert.fail.bind(assert));
-														});
+				});
 			});
 			context('data at root', function() {
 				it('returns the data', function (done) {
-															var port = newFirebaseServer({a: 'b'});
-															fetch('http://localhost:' + port + '/.json')
+					var port = newFirebaseServer({a: 'b'});
+					fetch('http://localhost:' + port + '/.json')
 						.then(function(resp) { return resp.json(); })
 						.then(function(payload) {
 							assert.deepEqual(payload, {a: 'b'});
 							done();
 						})
 						.catch(assert.fail.bind(assert));
-														});
+				});
 			});
 			context('data below root', function() {
 				it('returns the data', function (done) {
-															var port = newFirebaseServer({a: {c: 'b'}});
-															fetch('http://localhost:' + port + '/.json')
+					var port = newFirebaseServer({a: {c: 'b'}});
+					fetch('http://localhost:' + port + '/.json')
 						.then(function(resp) { return resp.json(); })
 						.then(function(payload) {
 							assert.deepEqual(payload, {a: {c: 'b'}});
 							done();
 						})
 						.catch(assert.fail.bind(assert));
-														});
+				});
 			});
 		});
 
 		describe('put', function() {
 			context('at root', function() {
 				it('stores data', function(done) {
-															var port = newFirebaseServer({});
-															var client = newFirebaseClient(port);
-															fetch('http://localhost:' + port + '/.json', {method: 'PUT', body: JSON.stringify({a: 'b'})})
+					var port = newFirebaseServer({});
+					var client = newFirebaseClient(port);
+					fetch('http://localhost:' + port + '/.json', {method: 'PUT', body: JSON.stringify({a: 'b'})})
 						.then(function(resp) {
 							client.once('value', function(snap) {
 								assert.deepEqual(snap.val(), {a: 'b'});
@@ -140,11 +140,11 @@ describe('Firebase HTTP Server', function () {
 							});
 						})
 						.catch(assert.fail.bind(assert));
-														});
+				});
 				it('overwrites unspecified keys', function(done) {
-															var port = newFirebaseServer({d: 'e'});
-															var client = newFirebaseClient(port);
-															fetch('http://localhost:' + port + '/.json', {method: 'PUT', body: JSON.stringify({a: 'b'})})
+					var port = newFirebaseServer({d: 'e'});
+					var client = newFirebaseClient(port);
+					fetch('http://localhost:' + port + '/.json', {method: 'PUT', body: JSON.stringify({a: 'b'})})
 						.then(function(resp) {
 							client.once('value', function(snap) {
 								assert.deepEqual(snap.val(), {a: 'b'});
@@ -152,13 +152,13 @@ describe('Firebase HTTP Server', function () {
 							});
 						})
 						.catch(assert.fail.bind(assert));
-														});
+				});
 			});
 			context('at subpath', function() {
 				it('stores data', function(done) {
-															var port = newFirebaseServer({});
-															var client = newFirebaseClient(port);
-															fetch('http://localhost:' + port + '/test.json', {method: 'PUT', body: JSON.stringify({a: 'b'})})
+					var port = newFirebaseServer({});
+					var client = newFirebaseClient(port);
+					fetch('http://localhost:' + port + '/test.json', {method: 'PUT', body: JSON.stringify({a: 'b'})})
 						.then(function(resp) {
 							client.once('value', function(snap) {
 								assert.deepEqual(snap.val(), {test: {a: 'b'}});
@@ -166,7 +166,7 @@ describe('Firebase HTTP Server', function () {
 							});
 						})
 						.catch(assert.fail.bind(assert));
-														});
+				});
 			});
 		});
 	});
