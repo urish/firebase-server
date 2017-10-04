@@ -18,9 +18,9 @@ var _ = require('lodash');
 // it is initialized in `beforeEach()`.
 var authToken = null;
 
-// Firebase has strict requirements about the hostname format. So we provide a dummy
-// hostname and then change the URL to localhost inside the faye-websocket's Client
-// constructor.
+// Firebase has strict requirements about the hostname format. So we provide
+// a dummy hostname and then change the URL to localhost inside the
+// faye-websocket's Client constructor.
 var firebase = proxyquire('firebase', {
 	'faye-websocket': {
 		Client: function (url) {
@@ -31,8 +31,8 @@ var firebase = proxyquire('firebase', {
 	}
 });
 
-// Override Firebase client authentication mechanism. This allows us to set custom auth tokens during
-// tests, as well as authenticate anonymously.
+// Override Firebase client authentication mechanism. This allows us to set
+// custom auth tokens during tests, as well as authenticate anonymously.
 firebase.INTERNAL.factories.auth = function(app, extendApp) {
 	var _listeners = [];
 	var token = authToken;
