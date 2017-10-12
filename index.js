@@ -115,10 +115,10 @@ function FirebaseServer(portOrOptions, name, data) {
 		var https = new HttpServer(port, options.address, this.app.database());
 		options = {server: https};
 	}
-				
-				if (options.address) {
-					options.host = options.address
-				}
+
+	if (options.address) {
+		options.host = options.address;
+	}
 
 	this._wss = new WebSocketServer(options);
 
