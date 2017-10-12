@@ -8,7 +8,7 @@ var cli = require('cli');
 var debug = require('debug');
 
 cli.parse({
-  rest: ['e', 'Enable REST HTTP API'],
+	rest: ['e', 'Enable REST HTTP API'],
 	verbose: ['v', 'Enable verbose (debug) output'],
 	port: ['p', 'Listen on this port', 'number', 5000],
 	address: ['a', 'Bind to this address', 'string'],
@@ -66,11 +66,11 @@ cli.main(function (args, options) {
 		server.setAuthSecret(options.secret);
 	}
 
-        var where;
-        if (options.address) {
-          where = options.address + ':' + options.port
-        } else {
-          where = 'port ' + options.port
-        }
+				var where;
+				if (options.address) {
+					where = options.address + ':' + options.port
+				} else {
+					where = 'port ' + options.port
+				}
 	this.ok('Listening on ' + where);
 });
