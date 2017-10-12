@@ -45,10 +45,14 @@ For more information, read the [blog post in the offical Firebase blog](https://
 
 ### Command Line Interface
 
-This package installs a CLI script called `firebase-server`. The following command will
-start a firebase server on port 5555:
+This package installs a CLI script called `firebase-server`. The following
+command will start a firebase server on port 5555:
 
 	node_modules/.bin/firebase-server -p 5555
+
+... and with a specified bind IP address:
+
+	node_modules/.bin/firebase-server -p 5555 -a 0.0.0.0
 
 To bootstrap the server with some data you can use the `-d,--data` or the `-f,--file` option.
 _Note: The file option will override the data option._

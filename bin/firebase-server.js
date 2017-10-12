@@ -10,6 +10,7 @@ var debug = require('debug');
 cli.parse({
 	verbose: ['v', 'Enable verbose (debug) output'],
 	port: ['p', 'Listen on this port', 'number', 5000],
+	address: ['a', 'Bind to this address', 'string'],
 	name: ['n', 'Hostname of the firebase server', 'string', 'localhost.firebaseio.test'],
 	data: ['d', 'JSON data to bootstrap the server with', 'string', '{}'],
 	file: ['f', 'JSON file to bootstrap the server with', 'file'],
@@ -54,7 +55,7 @@ cli.main(function (args, options) {
 		}
 	}
 
-	var server = new FirebaseServer(options.port, options.name, data); // eslint-disable-line no-new
+	var server = new FirebaseServer({port: options.port, address: options.address}, options.name, data); // eslint-disable-line no-new
 
 	if (rules) {
 		server.setRules(rules);
@@ -64,5 +65,11 @@ cli.main(function (args, options) {
 		server.setAuthSecret(options.secret);
 	}
 
-	this.ok('Listening on port ' + options.port);
+        var where;
+        if (options.address) {
+          where = options.address + ':' + options.port
+        } else {
+          where = 'port ' + options.port
+        }
+	this.ok('Listening on ' + where);
 });
