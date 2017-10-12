@@ -68,9 +68,9 @@ cli.main(function (args, options) {
 
 	var where;
 	if (options.address) {
-					where = options.address + ':' + options.port;
-				} else {
-					where = 'port ' + options.port;
-				}
+		where = options.address + ':' + options.port;
+	} else {
+		where = 'port ' + options.port;
+	}
 	this.ok('Listening on ' + where);
 });
