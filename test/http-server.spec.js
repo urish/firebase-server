@@ -97,7 +97,7 @@ describe('Firebase HTTP Server', function () {
 						.then(function(payload) {
 							assert.deepEqual(payload, {});
 							done();
-						})
+						});
 				});
 			});
 			context('data at root', function() {
@@ -108,7 +108,7 @@ describe('Firebase HTTP Server', function () {
 						.then(function(payload) {
 							assert.deepEqual(payload, {a: 'b'});
 							done();
-						})
+						});
 				});
 			});
 			context('data below root', function() {
@@ -119,7 +119,7 @@ describe('Firebase HTTP Server', function () {
 						.then(function(payload) {
 							assert.deepEqual(payload, {a: {c: 'b'}});
 							done();
-						})
+						});
 				});
 			});
 		});
@@ -135,7 +135,7 @@ describe('Firebase HTTP Server', function () {
 								assert.deepEqual(snap.val(), {a: 'b'});
 								done();
 							});
-						})
+						});
 				});
 				it('overwrites unspecified keys', function(done) {
 					var port = newFirebaseServer({d: 'e'});
@@ -146,7 +146,7 @@ describe('Firebase HTTP Server', function () {
 								assert.deepEqual(snap.val(), {a: 'b'});
 								done();
 							});
-						})
+						});
 				});
 			});
 			context('at subpath', function() {
@@ -159,7 +159,7 @@ describe('Firebase HTTP Server', function () {
 								assert.deepEqual(snap.val(), {test: {a: 'b'}});
 								done();
 							});
-						})
+						});
 				});
 			});
 		});
@@ -175,7 +175,7 @@ describe('Firebase HTTP Server', function () {
 								assert.deepEqual(snap.val(), {a: 'b'});
 								done();
 							});
-						})
+						});
 				});
 				it('merges data', function(done) {
 					var port = newFirebaseServer({d: 'e'});
@@ -186,7 +186,7 @@ describe('Firebase HTTP Server', function () {
 								assert.deepEqual(snap.val(), {a: 'b', d: 'e'});
 								done();
 							});
-						})
+						});
 				});
 			});
 			context('at subpath', function() {
@@ -199,7 +199,7 @@ describe('Firebase HTTP Server', function () {
 								assert.deepEqual(snap.val(), {test: {a: 'b'}});
 								done();
 							});
-						})
+						});
 				});
 			});
 		});
@@ -215,7 +215,7 @@ describe('Firebase HTTP Server', function () {
 								assert.deepEqual(snap.val(), null);
 								done();
 							});
-						})
+						});
 				});
 			});
 			context('at subpath', function() {
@@ -228,7 +228,7 @@ describe('Firebase HTTP Server', function () {
 								assert.deepEqual(snap.val(), {a: {k: 'l'}, m: 'p'});
 								done();
 							});
-						})
+						});
 				});
 			});
 		});
