@@ -104,7 +104,7 @@ describe('Firebase Server', function () {
 		var httpServer = http.createServer();
 		assert.throws(function() {
 						var fbServer = new FirebaseServer({server: httpServer, rest: true}, 'localhost:' + sequentialPort);
-                                                        						fbServer.close(function(){});
+																																		fbServer.close(function(){});
 					}, Error, 'Incompatible options: server, rest');
 		done();
 	});
