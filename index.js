@@ -110,11 +110,11 @@ function FirebaseServer(portOrOptions, name, data) {
 	}
 
 	if (options.server && options.rest) {
-          		throw new Error('Incompatible options: server, rest');
-        	} else if (options.rest) {
-	var https = new HttpServer(port, this.app.database());
-          	options = {server: https};
-        }
+		throw new Error('Incompatible options: server, rest');
+	} else if (options.rest) {
+		var https = new HttpServer(port, this.app.database());
+		options = {server: https};
+	}
 
 	this._wss = new WebSocketServer(options);
 
