@@ -17,7 +17,7 @@
 		"indent": [2, "tab", {"SwitchCase": 1}],
 		"max-depth": [2, 4],
 		"max-len": [0, 80, 4],
-		"max-nested-callbacks": [2, 5],
+		"max-nested-callbacks": [2, 10],
 		"max-params": [2, 8],
 		"max-statements": [2, 30],
 		"new-cap": [2],
