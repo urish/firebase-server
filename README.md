@@ -69,6 +69,13 @@ You can also specify a shared client auth token secret with the `-s` argument:
 
 	node_modules/.bin/firebase-server -s some-shared-secret
 
+To enable REST API, run:
+
+	node_modules/.bin/firebase-server -e
+
+Please note that currently REST API does not implement authentication or
+authorization.
+
 For more information, run:
 
 	node_modules/.bin/firebase-server -h
