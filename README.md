@@ -73,8 +73,8 @@ To enable REST API, run:
 
 	node_modules/.bin/firebase-server -e
 
-Please note that currently REST API does not implement authentication or
-authorization.
+_Note: currently REST API does not implement authentication or
+authorization._
 
 For more information, run:
 
