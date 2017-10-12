@@ -66,11 +66,11 @@ cli.main(function (args, options) {
 		server.setAuthSecret(options.secret);
 	}
 
-				var where;
-				if (options.address) {
-					where = options.address + ':' + options.port
+	var where;
+	if (options.address) {
+					where = options.address + ':' + options.port;
 				} else {
-					where = 'port ' + options.port
+					where = 'port ' + options.port;
 				}
 	this.ok('Listening on ' + where);
 });
