@@ -6,9 +6,7 @@ var PORT = 44000;
 
 var originalWebsocket = require('faye-websocket');
 var assert = require('assert');
-var http = require('http');
 var proxyquire = require('proxyquire');
-var _ = require('lodash');
 var fetch = require('node-fetch');
 
 // this is the auth token that will be sent to the server during tests.
@@ -52,9 +50,6 @@ firebase.INTERNAL.factories.auth = function(app, extendApp) {
 };
 
 var FirebaseServer = require('../index');
-var co = require('co');
-var TokenGenerator = require('firebase-token-generator');
-var tokenGenerator = new TokenGenerator('goodSecret');
 
 describe('Firebase HTTP Server', function () {
 	var server;
