@@ -7,6 +7,7 @@ Copyright (C) 2013, 2014, 2015, 2016, 2017, Uri Shaked <uri@urish.org>
 
 [![Build Status](https://travis-ci.org/urish/firebase-server.png?branch=master)](https://travis-ci.org/urish/firebase-server)
 [![Coverage Status](https://coveralls.io/repos/urish/firebase-server/badge.png)](https://coveralls.io/r/urish/firebase-server)
+[![npm version](https://badge.fury.io/js/firebase-server.png)](https://badge.fury.io/js/firebase-server)
 
 Installation
 ------------
