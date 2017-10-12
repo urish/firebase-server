@@ -8,6 +8,7 @@ var cli = require('cli');
 var debug = require('debug');
 
 cli.parse({
+  rest: ['e', 'Enable REST HTTP API'],
 	verbose: ['v', 'Enable verbose (debug) output'],
 	port: ['p', 'Listen on this port', 'number', 5000],
 	address: ['a', 'Bind to this address', 'string'],
@@ -55,7 +56,7 @@ cli.main(function (args, options) {
 		}
 	}
 
-	var server = new FirebaseServer({port: options.port, address: options.address}, options.name, data); // eslint-disable-line no-new
+	var server = new FirebaseServer({port: options.port, address: options.address, rest: options.rest}, options.name, data); // eslint-disable-line no-new
 
 	if (rules) {
 		server.setRules(rules);
