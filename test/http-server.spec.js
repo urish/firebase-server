@@ -169,5 +169,79 @@ describe('Firebase HTTP Server', function () {
 				});
 			});
 		});
+
+		describe('patch', function() {
+			context('at root', function() {
+				it('stores data', function(done) {
+					var port = newFirebaseServer({});
+					var client = newFirebaseClient(port);
+					fetch('http://localhost:' + port + '/.json', {method: 'PATCH', body: JSON.stringify({a: 'b'})})
+						.then(function(resp) {
+							client.once('value', function(snap) {
+								assert.deepEqual(snap.val(), {a: 'b'});
+								done();
+							});
+						})
+						.catch(assert.fail.bind(assert));
+				});
+				it('merges data', function(done) {
+					var port = newFirebaseServer({d: 'e'});
+					var client = newFirebaseClient(port);
+					fetch('http://localhost:' + port + '/.json', {method: 'PATCH', body: JSON.stringify({a: 'b'})})
+						.then(function(resp) {
+							client.once('value', function(snap) {
+								assert.deepEqual(snap.val(), {a: 'b', d: 'e'});
+								done();
+							});
+						})
+						.catch(assert.fail.bind(assert));
+				});
+			});
+			context('at subpath', function() {
+				it('stores data', function(done) {
+					var port = newFirebaseServer({});
+					var client = newFirebaseClient(port);
+					fetch('http://localhost:' + port + '/test.json', {method: 'PATCH', body: JSON.stringify({a: 'b'})})
+						.then(function(resp) {
+							client.once('value', function(snap) {
+								assert.deepEqual(snap.val(), {test: {a: 'b'}});
+								done();
+							});
+						})
+						.catch(assert.fail.bind(assert));
+				});
+			});
+		});
+
+		describe('delete', function() {
+			context('at root', function() {
+				it('deletes data', function(done) {
+					var port = newFirebaseServer({a: 'b'});
+					var client = newFirebaseClient(port);
+					fetch('http://localhost:' + port + '/.json', {method: 'DELETE'})
+						.then(function(resp) {
+							client.once('value', function(snap) {
+								assert.deepEqual(snap.val(), null);
+								done();
+							});
+						})
+						.catch(assert.fail.bind(assert));
+				});
+			});
+			context('at subpath', function() {
+				it('deletes data', function(done) {
+					var port = newFirebaseServer({a: {c: 'b', k: 'l'}, m: 'p'});
+					var client = newFirebaseClient(port);
+					fetch('http://localhost:' + port + '/a/c.json', {method: 'DELETE'})
+						.then(function(resp) {
+							client.once('value', function(snap) {
+								assert.deepEqual(snap.val(), {a: {k: 'l'}, m: 'p'});
+								done();
+							});
+						})
+						.catch(assert.fail.bind(assert));
+				});
+			});
+		});
 	});
 });
