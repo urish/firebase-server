@@ -117,7 +117,7 @@ function FirebaseServer(portOrOptions, name, data) {
 	}
 
 	if (options.address) {
-		options.host = options.address;
+		options = Object.assign({}, options, {host: options.address});
 	}
 
 	this._wss = new WebSocketServer(options);
