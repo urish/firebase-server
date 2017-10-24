@@ -392,9 +392,9 @@ FirebaseServer.prototype = {
 	},
 
 	close: function (callback) {
-          								if (this._https) {
-            				callback = function() {
-              				this._https.close(callback);
+          										if (this._https) {
+            					callback = function() {
+              					this._https.close(callback);
             };
           }
 		this._wss.close(callback);
