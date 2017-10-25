@@ -6,7 +6,7 @@
 
 /* global beforeEach, afterEach, describe, it */
 
-var PORT = 45000;
+var PORT = 46000;
 
 var originalWebsocket = require('faye-websocket');
 var assert = require('assert');
