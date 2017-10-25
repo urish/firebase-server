@@ -398,8 +398,8 @@ FirebaseServer.prototype = {
 				https.close(callback);
 			};
 		} else {
-                  cb = callback
-                }
+									cb = callback
+								}
 		this._wss.close(cb);
 	},
 
