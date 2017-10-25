@@ -392,8 +392,8 @@ FirebaseServer.prototype = {
 	},
 
 	close: function (callback) {
-		var https, cb;
-		if (https = this._https) {
+		var https= this._https, cb;
+		if (https) {
 			cb = function() {
 				https.close(callback);
 			};
