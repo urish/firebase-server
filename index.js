@@ -392,12 +392,15 @@ FirebaseServer.prototype = {
 	},
 
 	close: function (callback) {
-		if (this._https) {
-			callback = function() {
-				this._https.close(callback);
+		var https, cb;
+		if (https = this._https) {
+			cb = function() {
+				https.close(callback);
 			};
-		}
-		this._wss.close(callback);
+		} else {
+                  cb = callback
+                }
+		this._wss.close(cb);
 	},
 
 	setTime: function (newTime) {
