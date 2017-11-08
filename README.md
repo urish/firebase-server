@@ -56,7 +56,7 @@ The following command will start a firebase server on port 5555:
 
 ... and with a specified bind IP address:
 
-	node_modules/.bin/firebase-server -p 5555 -a 0.0.0.0
+	firebase-server -p 5555 -a 0.0.0.0
 
 To bootstrap the server with some data you can use the `-d,--data` or the `-f,--file` option.
 _Note: The file option will override the data option._
@@ -75,7 +75,7 @@ You can also specify a shared client auth token secret with the `-s` argument:
 
 To enable REST API, run:
 
-	node_modules/.bin/firebase-server -e
+	firebase-server -e
 
 _Note: currently REST API does not implement authentication or
 authorization._
