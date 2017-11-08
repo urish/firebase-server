@@ -55,7 +55,7 @@ describe('Firebase HTTP Server', function () {
 	var server;
 	var sequentialPort = PORT;
 	var sequentialConnectionId = 0;
-  var app = null
+	var app = null
 
 	beforeEach(function() {
 		authToken = null;
@@ -66,9 +66,9 @@ describe('Firebase HTTP Server', function () {
 			server.close();
 			server = null;
 		}
-                if (app) {
-                  app.database().goOffline()
-                }
+								if (app) {
+									app.database().goOffline()
+								}
 	});
 
 	function newFirebaseServer(data) {
