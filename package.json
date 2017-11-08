@@ -39,7 +39,7 @@
     "eslint": "1.7.3",
     "faye-websocket": "0.10.0",
     "firebase-token-generator": "^2.0.0",
-    "istanbul": "0.4.0",
+    "istanbul": "0.4.5",
     "mocha": "4.0.1",
     "proxyquire": "^1.7.3"
   },
