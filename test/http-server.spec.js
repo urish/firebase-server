@@ -115,7 +115,7 @@ describe('Firebase HTTP Server', function () {
 				});
 			});
 		});
-              })
+							})
 
 		describe('put', function() {
 			context('at root', function() {
@@ -125,8 +125,8 @@ describe('Firebase HTTP Server', function () {
 					return fetch('http://localhost:' + port + '/.json', {method: 'PUT', body: JSON.stringify({a: 'b'})})
 						.then(function(resp) {
 							return client.once('value')
-                                                })
-                                                  .then(function(snap) {
+																								})
+																									.then(function(snap) {
 								assert.deepEqual(snap.val(), {a: 'b'});
 							});
 				});
@@ -136,8 +136,8 @@ describe('Firebase HTTP Server', function () {
 					return fetch('http://localhost:' + port + '/.json', {method: 'PUT', body: JSON.stringify({a: 'b'})})
 						.then(function(resp) {
 							return client.once('value')
-                                                })
-                                                .then(function(snap) {
+																								})
+																								.then(function(snap) {
 								assert.deepEqual(snap.val(), {a: 'b'});
 							});
 				});
@@ -149,8 +149,8 @@ describe('Firebase HTTP Server', function () {
 					return fetch('http://localhost:' + port + '/test.json', {method: 'PUT', body: JSON.stringify({a: 'b'})})
 						.then(function(resp) {
 							return client.once('value')
-                                                })
-                                                .then(function(snap) {
+																								})
+																								.then(function(snap) {
 								assert.deepEqual(snap.val(), {test: {a: 'b'}});
 							});
 				});
@@ -165,8 +165,8 @@ describe('Firebase HTTP Server', function () {
 					return fetch('http://localhost:' + port + '/.json', {method: 'PATCH', body: JSON.stringify({a: 'b'})})
 						.then(function(resp) {
 							return client.once('value')
-                                                })
-                                                .then(function(snap) {
+																								})
+																								.then(function(snap) {
 								assert.deepEqual(snap.val(), {a: 'b'});
 							});
 				});
@@ -176,8 +176,8 @@ describe('Firebase HTTP Server', function () {
 					return fetch('http://localhost:' + port + '/.json', {method: 'PATCH', body: JSON.stringify({a: 'b'})})
 						.then(function(resp) {
 							return client.once('value')
-                                                })
-                                                .then(function(snap) {
+																								})
+																								.then(function(snap) {
 								assert.deepEqual(snap.val(), {a: 'b', d: 'e'});
 							});
 				});
@@ -189,8 +189,8 @@ describe('Firebase HTTP Server', function () {
 					return fetch('http://localhost:' + port + '/test.json', {method: 'PATCH', body: JSON.stringify({a: 'b'})})
 						.then(function(resp) {
 							return client.once('value')
-                                                })
-                                                .then(function(snap) {
+																								})
+																								.then(function(snap) {
 								assert.deepEqual(snap.val(), {test: {a: 'b'}});
 							});
 				});
@@ -205,8 +205,8 @@ describe('Firebase HTTP Server', function () {
 					return fetch('http://localhost:' + port + '/.json', {method: 'DELETE'})
 						.then(function(resp) {
 							return client.once('value')
-                                                })
-                                                .then(function(snap) {
+																								})
+																								.then(function(snap) {
 								assert.deepEqual(snap.val(), null);
 							});
 				});
@@ -218,8 +218,8 @@ describe('Firebase HTTP Server', function () {
 					return fetch('http://localhost:' + port + '/a/c.json', {method: 'DELETE'})
 						.then(function(resp) {
 							return client.once('value')
-                                                })
-                                                .then(function(snap) {
+																								})
+																								.then(function(snap) {
 								assert.deepEqual(snap.val(), {a: {k: 'l'}, m: 'p'});
 							});
 				});
