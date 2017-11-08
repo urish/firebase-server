@@ -85,35 +85,32 @@ describe('Firebase HTTP Server', function () {
 	describe('get', function() {
 		context('root json', function() {
 			context('empty dataset', function() {
-				it('returns empty hash', function (done) {
+				it('returns empty hash', function () {
 					var port = newFirebaseServer({});
 					return fetch('http://localhost:' + port + '/.json')
 						.then(function(resp) { return resp.json(); })
 						.then(function(payload) {
 							assert.deepEqual(payload, {});
-							done();
 						});
 				});
 			});
 			context('data at root', function() {
-				it('returns the data', function (done) {
+				it('returns the data', function () {
 					var port = newFirebaseServer({a: 'b'});
 					return fetch('http://localhost:' + port + '/.json')
 						.then(function(resp) { return resp.json(); })
 						.then(function(payload) {
 							assert.deepEqual(payload, {a: 'b'});
-							done();
 						});
 				});
 			});
 			context('data below root', function() {
-				it('returns the data', function (done) {
+				it('returns the data', function () {
 					var port = newFirebaseServer({a: {c: 'b'}});
 					return fetch('http://localhost:' + port + '/.json')
 						.then(function(resp) { return resp.json(); })
 						.then(function(payload) {
 							assert.deepEqual(payload, {a: {c: 'b'}});
-							done();
 						});
 				});
 			});
