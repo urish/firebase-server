@@ -63,6 +63,7 @@ describe('Firebase Server', function () {
 	var server;
 	var sequentialPort = PORT;
 	var sequentialConnectionId = 0;
+  var apps=[]
 
 	beforeEach(function() {
 		authToken = null;
@@ -73,6 +74,14 @@ describe('Firebase Server', function () {
 			server.close();
 			server = null;
 		}
+                while (true) {
+                  var app = apps.shift()
+                  if (app) {
+                  app.database().goOffline()
+                  } else {
+                    break
+                  }
+                }
 	});
 
 	function newFirebaseServer(data) {
@@ -87,6 +96,7 @@ describe('Firebase Server', function () {
 			databaseURL: url
 		};
 		var app = firebase.initializeApp(config, name);
+                apps.push(app)
 		return app.database().ref();
 	}
 
