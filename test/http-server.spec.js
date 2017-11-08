@@ -118,109 +118,109 @@ describe('Firebase HTTP Server', function () {
 
 		describe('put', function() {
 			context('at root', function() {
-				it('stores data', function(done) {
+				it('stores data', function() {
 					var port = newFirebaseServer({});
 					var client = newFirebaseClient(port);
 					return fetch('http://localhost:' + port + '/.json', {method: 'PUT', body: JSON.stringify({a: 'b'})})
 						.then(function(resp) {
-							client.once('value', function(snap) {
+							return client.once('value')
+                                                })
+                                                  .then(function(snap) {
 								assert.deepEqual(snap.val(), {a: 'b'});
-								done();
 							});
-						});
 				});
-				it('overwrites unspecified keys', function(done) {
+				it('overwrites unspecified keys', function() {
 					var port = newFirebaseServer({d: 'e'});
 					var client = newFirebaseClient(port);
 					return fetch('http://localhost:' + port + '/.json', {method: 'PUT', body: JSON.stringify({a: 'b'})})
 						.then(function(resp) {
-							client.once('value', function(snap) {
+							return client.once('value')
+                                                })
+                                                .then(function(snap) {
 								assert.deepEqual(snap.val(), {a: 'b'});
-								done();
 							});
-						});
 				});
 			});
 			context('at subpath', function() {
-				it('stores data', function(done) {
+				it('stores data', function() {
 					var port = newFirebaseServer({});
 					var client = newFirebaseClient(port);
 					return fetch('http://localhost:' + port + '/test.json', {method: 'PUT', body: JSON.stringify({a: 'b'})})
 						.then(function(resp) {
-							client.once('value', function(snap) {
+							return client.once('value')
+                                                })
+                                                .then(function(snap) {
 								assert.deepEqual(snap.val(), {test: {a: 'b'}});
-								done();
 							});
-						});
 				});
 			});
 		});
 
 		describe('patch', function() {
 			context('at root', function() {
-				it('stores data', function(done) {
+				it('stores data', function() {
 					var port = newFirebaseServer({});
 					var client = newFirebaseClient(port);
 					return fetch('http://localhost:' + port + '/.json', {method: 'PATCH', body: JSON.stringify({a: 'b'})})
 						.then(function(resp) {
-							client.once('value', function(snap) {
+							return client.once('value')
+                                                })
+                                                .then(function(snap) {
 								assert.deepEqual(snap.val(), {a: 'b'});
-								done();
 							});
-						});
 				});
-				it('merges data', function(done) {
+				it('merges data', function() {
 					var port = newFirebaseServer({d: 'e'});
 					var client = newFirebaseClient(port);
 					return fetch('http://localhost:' + port + '/.json', {method: 'PATCH', body: JSON.stringify({a: 'b'})})
 						.then(function(resp) {
-							client.once('value', function(snap) {
+							return client.once('value')
+                                                })
+                                                .then(function(snap) {
 								assert.deepEqual(snap.val(), {a: 'b', d: 'e'});
-								done();
 							});
-						});
 				});
 			});
 			context('at subpath', function() {
-				it('stores data', function(done) {
+				it('stores data', function() {
 					var port = newFirebaseServer({});
 					var client = newFirebaseClient(port);
 					return fetch('http://localhost:' + port + '/test.json', {method: 'PATCH', body: JSON.stringify({a: 'b'})})
 						.then(function(resp) {
-							client.once('value', function(snap) {
+							return client.once('value')
+                                                })
+                                                .then(function(snap) {
 								assert.deepEqual(snap.val(), {test: {a: 'b'}});
-								done();
 							});
-						});
 				});
 			});
 		});
 
 		describe('delete', function() {
 			context('at root', function() {
-				it('deletes data', function(done) {
+				it('deletes data', function() {
 					var port = newFirebaseServer({a: 'b'});
 					var client = newFirebaseClient(port);
 					return fetch('http://localhost:' + port + '/.json', {method: 'DELETE'})
 						.then(function(resp) {
-							client.once('value', function(snap) {
+							return client.once('value')
+                                                })
+                                                .then(function(snap) {
 								assert.deepEqual(snap.val(), null);
-								done();
 							});
-						});
 				});
 			});
 			context('at subpath', function() {
-				it('deletes data', function(done) {
+				it('deletes data', function() {
 					var port = newFirebaseServer({a: {c: 'b', k: 'l'}, m: 'p'});
 					var client = newFirebaseClient(port);
 					return fetch('http://localhost:' + port + '/a/c.json', {method: 'DELETE'})
 						.then(function(resp) {
-							client.once('value', function(snap) {
+							return client.once('value')
+                                                })
+                                                .then(function(snap) {
 								assert.deepEqual(snap.val(), {a: {k: 'l'}, m: 'p'});
-								done();
 							});
-						});
 				});
 			});
 		});
