@@ -115,6 +115,7 @@ describe('Firebase HTTP Server', function () {
 				});
 			});
 		});
+              })
 
 		describe('put', function() {
 			context('at root', function() {
@@ -225,4 +226,3 @@ describe('Firebase HTTP Server', function () {
 			});
 		});
 	});
-});
