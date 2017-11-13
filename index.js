@@ -8,7 +8,7 @@
 
 var _ = require('lodash');
 var WebSocketServer = require('ws').Server;
-var firebaseHash = require('./lib/firebaseHash');
+var firebaseHash = require('./lib/firebase-hash');
 var TestableClock = require('./lib/testable-clock');
 var TokenValidator = require('./lib/token-validator');
 var Promise = require('any-promise');
