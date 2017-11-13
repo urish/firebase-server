@@ -46,12 +46,17 @@ For more information, read the [blog post in the offical Firebase blog](https://
 
 ### Command Line Interface
 
-This package installs a CLI script called `firebase-server`. It can be installed locally or globally. If installed locally, use the following path to start the server: `./node_modules/.bin/firebase-server`
+This package installs a CLI script called `firebase-server`.
+It can be installed locally or globally. If installed locally, use the
+following path to start the server: `./node_modules/.bin/firebase-server`
 
-The following command will
-start a firebase server on port 5555:
+The following command will start a firebase server on port 5555:
 
 	firebase-server -p 5555
+
+... and with a specified bind IP address:
+
+	firebase-server -p 5555 -a 0.0.0.0
 
 To bootstrap the server with some data you can use the `-d,--data` or the `-f,--file` option.
 _Note: The file option will override the data option._
@@ -67,6 +72,13 @@ To load [Firebase Security rules](https://firebase.google.com/docs/database/secu
 You can also specify a shared client auth token secret with the `-s` argument:
 
 	firebase-server -s some-shared-secret
+
+To enable REST API, run:
+
+	firebase-server -e
+
+_Note: currently REST API does not implement authentication or
+authorization._
 
 For more information, run:
 

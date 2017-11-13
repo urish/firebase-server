@@ -15,6 +15,7 @@ var Promise = require('any-promise');
 var firebase = require('firebase');
 var targaryen = require('targaryen');
 var _log = require('debug')('firebase-server');
+var HttpServer = require('./lib/http-server');
 
 // In order to produce new Firebase clients that do not conflict with existing
 // instances of the Firebase client, each one must have a unique name.
@@ -88,23 +89,38 @@ function FirebaseServer(portOrOptions, name, data) {
 		}
 	}, data);
 
-	var port = portOrOptions;
+	var options, port;
 	if (typeof portOrOptions === 'object') {
-		this._wss = new WebSocketServer(portOrOptions);
-		if (portOrOptions.server) {
-			var address = portOrOptions.server.address();
+		options = portOrOptions;
+		if (options.server) {
+			var address = options.server.address();
 			if (address) {
 				port = address.port;
+			} else if (options.port) {
+				port = options.port;
+			} else {
+				throw new Error('Port not given in options and also not obtainable from server');
 			}
 		} else {
-			port = portOrOptions.port;
+			port = options.port;
 		}
 	} else {
-		this._wss = new WebSocketServer({
-			port: portOrOptions
-		});
 		port = portOrOptions;
+		options = {port: port};
 	}
+
+	if (options.server && options.rest) {
+		throw new Error('Incompatible options: server, rest');
+	} else if (options.rest) {
+		this._https = new HttpServer(port, options.address, this.app.database());
+		options = {server: this._https};
+	}
+
+	if (options.address) {
+		options = Object.assign({}, options, {host: options.address});
+	}
+
+	this._wss = new WebSocketServer(options);
 
 	this._clock = new TestableClock();
 	this._tokenValidator = new TokenValidator(null, this._clock);
@@ -376,7 +392,15 @@ FirebaseServer.prototype = {
 	},
 
 	close: function (callback) {
-		this._wss.close(callback);
+		var https= this._https, cb;
+		if (https) {
+			cb = function() {
+				https.close(callback);
+			};
+		} else {
+			cb = callback;
+		}
+		this._wss.close(cb);
 	},
 
 	setTime: function (newTime) {

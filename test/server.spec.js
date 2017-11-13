@@ -6,7 +6,7 @@
 
 /* global beforeEach, afterEach, describe, it */
 
-var PORT = 45000;
+var PORT = 46000;
 
 var originalWebsocket = require('faye-websocket');
 var assert = require('assert');
@@ -63,6 +63,7 @@ describe('Firebase Server', function () {
 	var server;
 	var sequentialPort = PORT;
 	var sequentialConnectionId = 0;
+	var apps=[];
 
 	beforeEach(function() {
 		authToken = null;
@@ -73,6 +74,12 @@ describe('Firebase Server', function () {
 			server.close();
 			server = null;
 		}
+		do {
+			var app = apps.shift();
+			if (app) {
+				app.database().goOffline();
+			}
+		} while(app);
 	});
 
 	function newFirebaseServer(data) {
@@ -87,6 +94,7 @@ describe('Firebase Server', function () {
 			databaseURL: url
 		};
 		var app = firebase.initializeApp(config, name);
+		apps.push(app);
 		return app.database().ref();
 	}
 
@@ -98,6 +106,15 @@ describe('Firebase Server', function () {
 		fbServer.close(function () {
 			httpServer.close(done);
 		});
+	});
+
+	it('should reject server and rest options together', function (done) {
+		var httpServer = http.createServer();
+		assert.throws(function() {
+			var fbServer = new FirebaseServer({server: httpServer, rest: true}, 'localhost:' + sequentialPort);
+			fbServer.close(function(){});
+		}, Error, 'Incompatible options: server, rest');
+		done();
 	});
 
 	it('should successfully use port within options', function (done) {
