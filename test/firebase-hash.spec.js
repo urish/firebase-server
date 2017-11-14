@@ -5,7 +5,7 @@
 'use strict';
 
 var assert = require('assert');
-var firebaseHash = require('../lib/firebaseHash');
+var firebaseHash = require('../lib/firebase-hash');
 
 /* global describe, it */
 
