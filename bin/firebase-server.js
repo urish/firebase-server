@@ -21,25 +21,24 @@ cli.parse({
 	secret: ['s', 'Shared client auth token secret', 'string']
 });
 
-cli.main(function (args, options) {
-	var pidPath = options.pid
+cli.main(function (args, options) { // eslint-disable-line max-statements,complexity
+	var pidPath = options.pid;
 	if (pidPath) {
-		pidPath = path.resolve(pidPath)
-		console.log(pidPath)
+		pidPath = path.resolve(pidPath);
 	}
 
 	if (options.daemon) {
 		// Work around https://github.com/indexzero/daemon.node/issues/41
-		require('daemon')({cwd: '/'})
+		require('daemon')({cwd: '/'});
 	}
 
 	if (options.pid) {
-		var process = require('process')
-		fs.writeFile(options.pid, process.pid.toString(), function() {})
+		var process = require('process');
+		fs.writeFile(options.pid, process.pid.toString(), function() {});
 
 		process.on('exit', function(code) {
-			fs.unlinkSync(options.pid, function() {})
-		})
+			fs.unlinkSync(options.pid, function() {}); // eslint-disable-line no-sync
+		});
 	}
 
 	if (options.verbose) {
@@ -79,10 +78,10 @@ cli.main(function (args, options) {
 	}
 
 	var server = new FirebaseServer({
-					port: options.port,
-					address: options.address,
-					rest: options.rest
-				}, options.name, data); // eslint-disable-line no-new
+		port: options.port,
+		address: options.address,
+		rest: options.rest
+	}, options.name, data); // eslint-disable-line no-new
 
 	if (rules) {
 		server.setRules(rules);
@@ -92,14 +91,13 @@ cli.main(function (args, options) {
 		server.setAuthSecret(options.secret);
 	}
 
-		function end() {
-			server.close(function() {
-				process.exit()
-			})
-		}
-		process.on('SIGINT', end)
-		process.on('SIGTERM', end)
-
+	function end() {
+		server.close(function() {
+			process.exit(); // eslint-disable-line no-process-exit
+		});
+	}
+	process.on('SIGINT', end);
+	process.on('SIGTERM', end);
 
 	var where;
 	if (options.address) {
