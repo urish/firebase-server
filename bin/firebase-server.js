@@ -2,6 +2,7 @@
 
 'use strict';
 
+var process = require('process');
 var fs = require('fs');
 var path = require('path');
 var cli = require('cli');
@@ -33,7 +34,6 @@ cli.main(function (args, options) { // eslint-disable-line max-statements,comple
 	}
 
 	if (options.pid) {
-		var process = require('process');
 		fs.writeFile(options.pid, process.pid.toString(), function() {});
 
 		process.on('exit', function(code) {
