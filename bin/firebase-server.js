@@ -2,6 +2,7 @@
 
 'use strict';
 
+var process = require('process');
 var fs = require('fs');
 var path = require('path');
 var cli = require('cli');
@@ -12,6 +13,8 @@ cli.parse({
 	verbose: ['v', 'Enable verbose (debug) output'],
 	port: ['p', 'Listen on this port', 'number', 5000],
 	address: ['a', 'Bind to this address', 'string'],
+	daemon: ['b', 'Daemonize (run in background)'],
+	pid: [false, 'Write PID to this path', 'string'],
 	name: ['n', 'Hostname of the firebase server', 'string', 'localhost.firebaseio.test'],
 	data: ['d', 'JSON data to bootstrap the server with', 'string', '{}'],
 	file: ['f', 'JSON file to bootstrap the server with', 'file'],
@@ -19,7 +22,25 @@ cli.parse({
 	secret: ['s', 'Shared client auth token secret', 'string']
 });
 
-cli.main(function (args, options) {
+cli.main(function (args, options) { // eslint-disable-line max-statements,complexity
+	var pidPath = options.pid;
+	if (pidPath) {
+		pidPath = path.resolve(pidPath);
+	}
+
+	if (options.daemon) {
+		// Work around https://github.com/indexzero/daemon.node/issues/41
+		require('daemon')({cwd: '/'});
+	}
+
+	if (options.pid) {
+		fs.writeFile(options.pid, process.pid.toString(), function() {});
+
+		process.on('exit', function(code) {
+			fs.unlinkSync(options.pid, function() {}); // eslint-disable-line no-sync
+		});
+	}
+
 	if (options.verbose) {
 		debug.enable('firebase-server*');
 	}
@@ -56,7 +77,11 @@ cli.main(function (args, options) {
 		}
 	}
 
-	var server = new FirebaseServer({port: options.port, address: options.address, rest: options.rest}, options.name, data); // eslint-disable-line no-new
+	var server = new FirebaseServer({
+		port: options.port,
+		address: options.address,
+		rest: options.rest
+	}, options.name, data); // eslint-disable-line no-new
 
 	if (rules) {
 		server.setRules(rules);
@@ -65,6 +90,14 @@ cli.main(function (args, options) {
 	if (options.secret) {
 		server.setAuthSecret(options.secret);
 	}
+
+	function end() {
+		server.close(function() {
+			process.exit(); // eslint-disable-line no-process-exit
+		});
+	}
+	process.on('SIGINT', end);
+	process.on('SIGTERM', end);
 
 	var where;
 	if (options.address) {
