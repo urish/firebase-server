@@ -80,6 +80,17 @@ To enable REST API, run:
 _Note: currently REST API does not implement authentication or
 authorization._
 
+To daemonize the server process, use:
+
+	firebase-server -b
+
+To write the PID to a file, use:
+
+	firebase-server --pid /var/run/firebase-server.pid
+
+_Note: PID file can be written with or without daemonization, and is NOT
+written by default when daemonizing.
+
 For more information, run:
 
 	firebase-server -h
