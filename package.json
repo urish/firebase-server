@@ -32,11 +32,10 @@
     "CHANGELOG.md"
   ],
   "devDependencies": {
-    "babel": "5.8.23",
     "bluebird": "2.10.2",
     "co": "4.6.0",
     "coveralls": "2.11.4",
-    "eslint": "1.7.3",
+    "eslint": "4.11.0",
     "faye-websocket": "0.10.0",
     "firebase-token-generator": "^2.0.0",
     "istanbul": "0.4.0",
@@ -44,7 +43,6 @@
     "proxyquire": "^1.7.3"
   },
   "dependencies": {
-    "any-promise": "1.3.0",
     "cli": "0.11.3",
     "daemon": "^1.1.0",
     "debug": "2.2.0",
@@ -54,5 +52,8 @@
     "node-fetch": "^1.7.3",
     "targaryen": "3.0.1",
     "ws": "1.1.1"
+  },
+  "engines": {
+    "node": ">=6.0.0"
   }
 }

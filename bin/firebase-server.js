@@ -2,11 +2,11 @@
 
 'use strict';
 
-var process = require('process');
-var fs = require('fs');
-var path = require('path');
-var cli = require('cli');
-var debug = require('debug');
+const process = require('process');
+const fs = require('fs');
+const path = require('path');
+const cli = require('cli');
+const debug = require('debug');
 
 cli.parse({
 	rest: ['e', 'Enable REST HTTP API'],
@@ -23,7 +23,7 @@ cli.parse({
 });
 
 cli.main(function (args, options) { // eslint-disable-line max-statements,complexity
-	var pidPath = options.pid;
+	let pidPath = options.pid;
 	if (pidPath) {
 		pidPath = path.resolve(pidPath);
 	}
@@ -34,10 +34,10 @@ cli.main(function (args, options) { // eslint-disable-line max-statements,comple
 	}
 
 	if (options.pid) {
-		fs.writeFile(options.pid, process.pid.toString(), function() {});
+		fs.writeFile(options.pid, process.pid.toString(), () => {});
 
-		process.on('exit', function(code) {
-			fs.unlinkSync(options.pid, function() {}); // eslint-disable-line no-sync
+		process.on('exit', code => {
+			fs.unlinkSync(options.pid, () => {}); // eslint-disable-line no-sync
 		});
 	}
 
@@ -45,9 +45,9 @@ cli.main(function (args, options) { // eslint-disable-line max-statements,comple
 		debug.enable('firebase-server*');
 	}
 
-	var FirebaseServer = require('../index.js');
+	const FirebaseServer = require('../index.js');
 
-	var rawData;
+	let rawData;
 	if (options.file) {
 		try {
 			rawData = fs.readFileSync(path.resolve(process.cwd(), options.file)); // eslint-disable-line no-sync
@@ -67,7 +67,7 @@ cli.main(function (args, options) { // eslint-disable-line max-statements,comple
 		this.fatal('Provided data was not valid JSON.');
 	}
 
-	var rules;
+	let rules;
 	if (options.rules) {
 		try {
 			rules = JSON.parse(fs.readFileSync(path.resolve(process.cwd(), options.rules))); // eslint-disable-line no-sync
@@ -77,7 +77,7 @@ cli.main(function (args, options) { // eslint-disable-line max-statements,comple
 		}
 	}
 
-	var server = new FirebaseServer({
+	const server = new FirebaseServer({
 		port: options.port,
 		address: options.address,
 		rest: options.rest
@@ -92,18 +92,18 @@ cli.main(function (args, options) { // eslint-disable-line max-statements,comple
 	}
 
 	function end() {
-		server.close(function() {
+		server.close(() => {
 			process.exit(); // eslint-disable-line no-process-exit
 		});
 	}
 	process.on('SIGINT', end);
 	process.on('SIGTERM', end);
 
-	var where;
+	let where;
 	if (options.address) {
-		where = options.address + ':' + options.port;
+		where = `${options.address}:${options.port}`;
 	} else {
-		where = 'port ' + options.port;
+		where = `port ${options.port}`;
 	}
-	this.ok('Listening on ' + where);
+	this.ok(`Listening on ${where}`);
 });

@@ -4,16 +4,16 @@
 
 'use strict';
 
-var assert = require('assert');
-var TestableClock = require('../lib/testable-clock.js');
+const assert = require('assert');
+const TestableClock = require('../lib/testable-clock.js');
 
-describe('testable-clock', function () {
-	it('should be of type `function`', function () {
+describe('testable-clock', () => {
+	it('should be of type `function`', () => {
 		assert.strictEqual(typeof new TestableClock(), 'function');
 	});
 
-	it('should lock to a static time if set to a number', function () {
-		var clock = new TestableClock(3);
+	it('should lock to a static time if set to a number', () => {
+		const clock = new TestableClock(3);
 
 		assert.strictEqual(clock(), 3);
 
@@ -22,11 +22,9 @@ describe('testable-clock', function () {
 		assert.strictEqual(clock(), 6);
 	});
 
-	it('should accept a function that returns the current time', function () {
-		var time = 3;
-		var clock = new TestableClock(function () {
-			return time;
-		});
+	it('should accept a function that returns the current time', () => {
+		let time = 3;
+		const clock = new TestableClock(() => time);
 
 		assert.strictEqual(clock(), 3);
 
@@ -35,9 +33,9 @@ describe('testable-clock', function () {
 		assert.strictEqual(clock(), 6);
 	});
 
-	it('should proxy another clock', function () {
-		var clock1 = new TestableClock(3);
-		var clock2 = new TestableClock(clock1);
+	it('should proxy another clock', () => {
+		const clock1 = new TestableClock(3);
+		const clock2 = new TestableClock(clock1);
 
 		assert.strictEqual(clock2(), 3);
 
@@ -58,20 +56,18 @@ describe('testable-clock', function () {
 		assert.strictEqual(clock2(), 12);
 	});
 
-	it('should default to the system time', function () {
-		var clock = new TestableClock();
+	it('should default to the system time', () => {
+		const clock = new TestableClock();
 
-		var before = (new Date()).getTime();
-		var time = clock();
-		var after = (new Date()).getTime();
+		const before = (new Date()).getTime();
+		const time = clock();
+		const after = (new Date()).getTime();
 
 		assert(before <= time, 'before');
 		assert(after >= time, 'after');
 	});
 
-	it('should throw if provided bad input', function () {
-		assert.throws(function () {
-			return new TestableClock(true);
-		});
+	it('should throw if provided bad input', () => {
+		assert.throws(() => new TestableClock(true));
 	});
 });

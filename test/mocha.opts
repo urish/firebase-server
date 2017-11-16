@@ -1,2 +1,1 @@
---compilers js:./test/mocha-babel.js
 test/*.spec.js
