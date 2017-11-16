@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.12.0 - 2017-11-16
+- REST API support ([#95](https://github.com/urish/firebase-server/pull/95), contributed by [p-salido](https://github.com/p-salido))
+- Daemonization option ([#111](https://github.com/urish/firebase-server/pull/111), contributed by [p-salido](https://github.com/p-salido))
+
 ## 0.11.0 - 2017-08-19
 - Migrate to Targaryen 3 ([#100](https://github.com/urish/firebase-server/pull/100), contributed by [dotdoom](https://github.com/dotdoom))
 - Support passing a WebSocket.Server options object to the FirebaseServer constructor ([#101](https://github.com/urish/firebase-server/pull/101), contributed by [tommie](https://github.com/tommie))
