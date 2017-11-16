@@ -28,21 +28,21 @@ var firebase = proxyquire('firebase', {
 
 // Override Firebase client authentication mechanism. This allows us to set
 // custom auth tokens during tests, as well as authenticate anonymously.
-firebase.INTERNAL.factories.auth = function(app, extendApp) {
+firebase.INTERNAL.factories.auth = function (app, extendApp) {
 	var _listeners = [];
 	var token = authToken;
 	extendApp({
 		'INTERNAL': {
-			'getToken': function() {
+			'getToken': function () {
 				if (!token) {
 					return Promise.resolve(null);
 				}
-				_listeners.forEach(function(listener) {
+				_listeners.forEach(function (listener) {
 					listener(token);
 				});
 				return Promise.resolve({ accessToken: token, expirationTime: 1566618502074 });
 			},
-			'addAuthTokenListener': function(listener) {
+			'addAuthTokenListener': function (listener) {
 				_listeners.push(listener);
 			}
 		}
@@ -57,7 +57,7 @@ describe('Firebase HTTP Server', function () {
 	var sequentialConnectionId = 0;
 	var app = null;
 
-	beforeEach(function() {
+	beforeEach(function () {
 		authToken = null;
 	});
 
@@ -72,7 +72,7 @@ describe('Firebase HTTP Server', function () {
 	});
 
 	function newFirebaseServer(data) {
-		server = new FirebaseServer({port: sequentialPort, rest: true}, 'localhost:' + sequentialPort, data);
+		server = new FirebaseServer({ port: sequentialPort, rest: true }, 'localhost:' + sequentialPort, data);
 		return sequentialPort++;
 	}
 
@@ -86,146 +86,146 @@ describe('Firebase HTTP Server', function () {
 		return app.database().ref();
 	}
 
-	describe('get', function() {
-		context('root json', function() {
-			context('empty dataset', function() {
+	describe('get', function () {
+		context('root json', function () {
+			context('empty dataset', function () {
 				it('returns empty hash', function () {
 					var port = newFirebaseServer({});
 					return fetch('http://localhost:' + port + '/.json')
-						.then(function(resp) { return resp.json(); })
-						.then(function(payload) {
+						.then(function (resp) { return resp.json(); })
+						.then(function (payload) {
 							assert.deepEqual(payload, {});
 						});
 				});
 			});
-			context('data at root', function() {
+			context('data at root', function () {
 				it('returns the data', function () {
-					var port = newFirebaseServer({a: 'b'});
+					var port = newFirebaseServer({ a: 'b' });
 					return fetch('http://localhost:' + port + '/.json')
-						.then(function(resp) { return resp.json(); })
-						.then(function(payload) {
-							assert.deepEqual(payload, {a: 'b'});
+						.then(function (resp) { return resp.json(); })
+						.then(function (payload) {
+							assert.deepEqual(payload, { a: 'b' });
 						});
 				});
 			});
-			context('data below root', function() {
+			context('data below root', function () {
 				it('returns the data', function () {
-					var port = newFirebaseServer({a: {c: 'b'}});
+					var port = newFirebaseServer({ a: { c: 'b' } });
 					return fetch('http://localhost:' + port + '/.json')
-						.then(function(resp) { return resp.json(); })
-						.then(function(payload) {
-							assert.deepEqual(payload, {a: {c: 'b'}});
+						.then(function (resp) { return resp.json(); })
+						.then(function (payload) {
+							assert.deepEqual(payload, { a: { c: 'b' } });
 						});
 				});
 			});
 		});
 	});
 
-	describe('put', function() {
-		context('at root', function() {
-			it('stores data', function() {
+	describe('put', function () {
+		context('at root', function () {
+			it('stores data', function () {
 				var port = newFirebaseServer({});
 				var client = newFirebaseClient(port);
-				return fetch('http://localhost:' + port + '/.json', {method: 'PUT', body: JSON.stringify({a: 'b'})})
-						.then(function(resp) {
-							return client.once('value');
-						})
-																									.then(function(snap) {
-																										assert.deepEqual(snap.val(), {a: 'b'});
-																									});
+				return fetch('http://localhost:' + port + '/.json', { method: 'PUT', body: JSON.stringify({ a: 'b' }) })
+					.then(function (resp) {
+						return client.once('value');
+					})
+					.then(function (snap) {
+						assert.deepEqual(snap.val(), { a: 'b' });
+					});
 			});
-			it('overwrites unspecified keys', function() {
-				var port = newFirebaseServer({d: 'e'});
+			it('overwrites unspecified keys', function () {
+				var port = newFirebaseServer({ d: 'e' });
 				var client = newFirebaseClient(port);
-				return fetch('http://localhost:' + port + '/.json', {method: 'PUT', body: JSON.stringify({a: 'b'})})
-						.then(function(resp) {
-							return client.once('value');
-						})
-																								.then(function(snap) {
-																									assert.deepEqual(snap.val(), {a: 'b'});
-																								});
+				return fetch('http://localhost:' + port + '/.json', { method: 'PUT', body: JSON.stringify({ a: 'b' }) })
+					.then(function (resp) {
+						return client.once('value');
+					})
+					.then(function (snap) {
+						assert.deepEqual(snap.val(), { a: 'b' });
+					});
 			});
 		});
-		context('at subpath', function() {
-			it('stores data', function() {
+		context('at subpath', function () {
+			it('stores data', function () {
 				var port = newFirebaseServer({});
 				var client = newFirebaseClient(port);
-				return fetch('http://localhost:' + port + '/test.json', {method: 'PUT', body: JSON.stringify({a: 'b'})})
-						.then(function(resp) {
-							return client.once('value');
-						})
-																								.then(function(snap) {
-																									assert.deepEqual(snap.val(), {test: {a: 'b'}});
-																								});
+				return fetch('http://localhost:' + port + '/test.json', { method: 'PUT', body: JSON.stringify({ a: 'b' }) })
+					.then(function (resp) {
+						return client.once('value');
+					})
+					.then(function (snap) {
+						assert.deepEqual(snap.val(), { test: { a: 'b' } });
+					});
 			});
 		});
 	});
 
-	describe('patch', function() {
-		context('at root', function() {
-			it('stores data', function() {
+	describe('patch', function () {
+		context('at root', function () {
+			it('stores data', function () {
 				var port = newFirebaseServer({});
 				var client = newFirebaseClient(port);
-				return fetch('http://localhost:' + port + '/.json', {method: 'PATCH', body: JSON.stringify({a: 'b'})})
-						.then(function(resp) {
-							return client.once('value');
-						})
-																								.then(function(snap) {
-																									assert.deepEqual(snap.val(), {a: 'b'});
-																								});
+				return fetch('http://localhost:' + port + '/.json', { method: 'PATCH', body: JSON.stringify({ a: 'b' }) })
+					.then(function (resp) {
+						return client.once('value');
+					})
+					.then(function (snap) {
+						assert.deepEqual(snap.val(), { a: 'b' });
+					});
 			});
-			it('merges data', function() {
-				var port = newFirebaseServer({d: 'e'});
+			it('merges data', function () {
+				var port = newFirebaseServer({ d: 'e' });
 				var client = newFirebaseClient(port);
-				return fetch('http://localhost:' + port + '/.json', {method: 'PATCH', body: JSON.stringify({a: 'b'})})
-						.then(function(resp) {
-							return client.once('value');
-						})
-																								.then(function(snap) {
-																									assert.deepEqual(snap.val(), {a: 'b', d: 'e'});
-																								});
+				return fetch('http://localhost:' + port + '/.json', { method: 'PATCH', body: JSON.stringify({ a: 'b' }) })
+					.then(function (resp) {
+						return client.once('value');
+					})
+					.then(function (snap) {
+						assert.deepEqual(snap.val(), { a: 'b', d: 'e' });
+					});
 			});
 		});
-		context('at subpath', function() {
-			it('stores data', function() {
+		context('at subpath', function () {
+			it('stores data', function () {
 				var port = newFirebaseServer({});
 				var client = newFirebaseClient(port);
-				return fetch('http://localhost:' + port + '/test.json', {method: 'PATCH', body: JSON.stringify({a: 'b'})})
-						.then(function(resp) {
-							return client.once('value');
-						})
-																								.then(function(snap) {
-																									assert.deepEqual(snap.val(), {test: {a: 'b'}});
-																								});
+				return fetch('http://localhost:' + port + '/test.json', { method: 'PATCH', body: JSON.stringify({ a: 'b' }) })
+					.then(function (resp) {
+						return client.once('value');
+					})
+					.then(function (snap) {
+						assert.deepEqual(snap.val(), { test: { a: 'b' } });
+					});
 			});
 		});
 	});
 
-	describe('delete', function() {
-		context('at root', function() {
-			it('deletes data', function() {
-				var port = newFirebaseServer({a: 'b'});
+	describe('delete', function () {
+		context('at root', function () {
+			it('deletes data', function () {
+				var port = newFirebaseServer({ a: 'b' });
 				var client = newFirebaseClient(port);
-				return fetch('http://localhost:' + port + '/.json', {method: 'DELETE'})
-						.then(function(resp) {
-							return client.once('value');
-						})
-																								.then(function(snap) {
-																									assert.deepEqual(snap.val(), null);
-																								});
+				return fetch('http://localhost:' + port + '/.json', { method: 'DELETE' })
+					.then(function (resp) {
+						return client.once('value');
+					})
+					.then(function (snap) {
+						assert.deepEqual(snap.val(), null);
+					});
 			});
 		});
-		context('at subpath', function() {
-			it('deletes data', function() {
-				var port = newFirebaseServer({a: {c: 'b', k: 'l'}, m: 'p'});
+		context('at subpath', function () {
+			it('deletes data', function () {
+				var port = newFirebaseServer({ a: { c: 'b', k: 'l' }, m: 'p' });
 				var client = newFirebaseClient(port);
-				return fetch('http://localhost:' + port + '/a/c.json', {method: 'DELETE'})
-						.then(function(resp) {
-							return client.once('value');
-						})
-																								.then(function(snap) {
-																									assert.deepEqual(snap.val(), {a: {k: 'l'}, m: 'p'});
-																								});
+				return fetch('http://localhost:' + port + '/a/c.json', { method: 'DELETE' })
+					.then(function (resp) {
+						return client.once('value');
+					})
+					.then(function (snap) {
+						assert.deepEqual(snap.val(), { a: { k: 'l' }, m: 'p' });
+					});
 			});
 		});
 	});
