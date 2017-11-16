@@ -60,18 +60,6 @@ You can also just call `mocha` from the command line, if you installed mocha glo
 
 You can also just call `mocha -w` from the command line, if you installed mocha globally (`npm install --global mocha`).
 
-## Using ES6 Language Features
-
-The test suite uses `babel` to provide ES6 language features *for the tests only*. 
-
-*In the tests*:  
-  Feel free to use any language feature supported by default in the latest *stable* version of Node 
-  (4.1.2 at time of writing). ES6 features that are not yet adopted into the Node *stable* branch 
-  should *not* be used (i.e. no features that require the `--es_staging` flag).
-
-*In production code*:  
-  You must stick to ES5 language features supported by Node 0.10.
-
 ## Contributing/Submitting changes
 
 - If you are changing the API or adding features, it is **highly** recommended that
