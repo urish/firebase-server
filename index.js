@@ -173,11 +173,11 @@ FirebaseServer.prototype = {
 			send({d: {r: requestId, b: {s: 'permission_denied', d: 'Permission denied'}}, t: 'd'});
 		}
 
-		function replaceServerTimestamp(data) {
+		function replaceServerTimestamp(value, data) {
 			if (_.isEqual(data, firebase.database.ServerValue.TIMESTAMP)) {
-				return server._clock();
+				return value;
 			} else if (_.isObject(data)) {
-				return _.mapValues(data, replaceServerTimestamp);
+				return _.mapValues(data, replaceServerTimestamp.bind(this, value));
 			} else {
 				return data;
 			}
@@ -191,8 +191,8 @@ FirebaseServer.prototype = {
 			}
 		}
 
-		function tryPatch(requestId, path, newData) {
-			const result = server._targaryen.as(authData()).update(path, newData);
+		function tryPatch(requestId, path, newData, now) {
+			const result = server._targaryen.as(authData()).update(path, newData, now);
 			if (!result.allowed) {
 				permissionDenied(requestId);
 				throw new Error(`Permission denied for client to update at ${path}: ${result.info}`);
@@ -200,8 +200,8 @@ FirebaseServer.prototype = {
 			server._targaryen = result.newDatabase;
 		}
 
-		function tryWrite(requestId, path, newData) {
-			const result = server._targaryen.as(authData()).write(path, newData);
+		function tryWrite(requestId, path, newData, now) {
+			const result = server._targaryen.as(authData()).write(path, newData, now);
 			if (!result.allowed) {
 				permissionDenied(requestId);
 				throw new Error(`Permission denied for client to write to ${path}: ${result.info}`);
@@ -236,10 +236,11 @@ FirebaseServer.prototype = {
 			const path = normalizedPath.path;
 			_log(`Client update ${path}`);
 
-			newData = replaceServerTimestamp(newData);
+			let now = server._clock();
+			newData = replaceServerTimestamp(now, newData);
 
 			try {
-				tryPatch(requestId, path, newData);
+				tryPatch(requestId, path, newData, now);
 			} catch (e) {
 				_log(e);
 				return;
@@ -255,7 +256,8 @@ FirebaseServer.prototype = {
 			let progress = Promise.resolve(true);
 			const path = normalizedPath.path;
 
-			newData = replaceServerTimestamp(newData);
+			let now = server._clock();
+			newData = replaceServerTimestamp(now, newData);
 
 			if (normalizedPath.isPriorityPath) {
 				progress = exportData(fbRef).then(parentData => {
@@ -272,7 +274,7 @@ FirebaseServer.prototype = {
 			}
 
 			progress = progress.then(() => {
-				tryWrite(requestId, path, newData);
+				tryWrite(requestId, path, newData, now);
 			});
 
 			if (typeof hash !== 'undefined') {
