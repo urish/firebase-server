@@ -574,6 +574,40 @@ describe('Firebase Server', () => {
 				}
 			});
 		});
+
+		it('should succeed in comparing ServerValue.TIMESTAMP to now', done => {
+			const port = newFirebaseServer({
+				Firebase: 'great!'
+			});
+			server.setRules({
+				rules: {
+					'timestamp': {
+						'.write': 'newData.val() === now'
+					},
+				},
+			});
+
+			const client = newFirebaseClient(port);
+			client.child('timestamp').set(
+				firebase.database.ServerValue.TIMESTAMP,
+				co.wrap(function *(err) {
+					if (err) {
+						done(err);
+						return;
+					}
+					assert((yield server.getValue()).timestamp);
+					client.update({
+						'timestamp': firebase.database.ServerValue.TIMESTAMP,
+					}, co.wrap(function *(err) {
+						if (err) {
+							done(err);
+							return;
+						}
+						assert((yield server.getValue()).timestamp);
+						done();
+					}));
+				}));
+		});
 	});
 
 	describe('#setPriority', () => {
