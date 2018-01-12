@@ -2,15 +2,13 @@
  * Copyright (C) 2013, 2014, 2015, 2016, Uri Shaked.
  */
 
-'use strict';
-
-/* global beforeEach, afterEach, describe, it */
+import * as assert from 'assert';
+import * as http from 'http';
 
 const PORT = 46000;
 
+// tslint:disable:no-var-requires
 const originalWebsocket = require('faye-websocket');
-const assert = require('assert');
-const http = require('http');
 const proxyquire = require('proxyquire');
 const _ = require('lodash');
 
@@ -23,34 +21,35 @@ let authToken = null;
 // faye-websocket's Client constructor.
 const firebase = proxyquire('firebase', {
 	'faye-websocket': {
-		Client: function (url) {
+		'@global': true,
+		// tslint:disable-next-line
+		'Client': function(url) {
 			url = url.replace(/dummy\d+\.firebaseio\.test/i, 'localhost');
 			return new originalWebsocket.Client(url);
 		},
-		'@global': true
-	}
+	},
 });
 
 // Override Firebase client authentication mechanism. This allows us to set
 // custom auth tokens during tests, as well as authenticate anonymously.
-firebase.INTERNAL.factories.auth = function(app, extendApp) {
-	const _listeners = [];
+firebase.INTERNAL.factories.auth = (app, extendApp) => {
+	const listeners = [];
 	const token = authToken;
 	extendApp({
-		'INTERNAL': {
-			'getToken': function() {
+		INTERNAL: {
+			getToken() {
 				if (!token) {
 					return Promise.resolve(null);
 				}
-				_listeners.forEach(listener => {
+				listeners.forEach((listener) => {
 					listener(token);
 				});
 				return Promise.resolve({ accessToken: token, expirationTime: 1566618502074 });
 			},
-			'addAuthTokenListener': function(listener) {
-				_listeners.push(listener);
-			}
-		}
+			addAuthTokenListener(listener) {
+				listeners.push(listener);
+			},
+		},
 	});
 };
 
@@ -63,7 +62,7 @@ describe('Firebase Server', () => {
 	let server;
 	let sequentialPort = PORT;
 	let sequentialConnectionId = 0;
-	const apps=[];
+	const apps = [];
 
 	beforeEach(() => {
 		authToken = null;
@@ -74,15 +73,16 @@ describe('Firebase Server', () => {
 			server.close();
 			server = null;
 		}
+		let app;
 		do {
-			var app = apps.shift();
+			app = apps.shift();
 			if (app) {
 				app.database().goOffline();
 			}
-		} while(app);
+		} while (app);
 	});
 
-	function newFirebaseServer(data) {
+	function newFirebaseServer(data?) {
 		server = new FirebaseServer(sequentialPort, `localhost:${sequentialPort}`, data);
 		return sequentialPort++;
 	}
@@ -91,14 +91,14 @@ describe('Firebase Server', () => {
 		const name = `test-firebase-client-${sequentialConnectionId}`;
 		const url = `ws://dummy${sequentialConnectionId++}.firebaseio.test:${port}`;
 		const config = {
-			databaseURL: url
+			databaseURL: url,
 		};
 		const app = firebase.initializeApp(config, name);
 		apps.push(app);
 		return app.database().ref();
 	}
 
-	it('should successfully use an existing http.Server', done => {
+	it('should successfully use an existing http.Server', (done) => {
 		const httpServer = http.createServer();
 		httpServer.listen(sequentialPort);
 		const fbServer = new FirebaseServer({server: httpServer}, `localhost:${sequentialPort}`);
@@ -108,104 +108,104 @@ describe('Firebase Server', () => {
 		});
 	});
 
-	it('should reject server and rest options together', done => {
+	it('should reject server and rest options together', (done) => {
 		const httpServer = http.createServer();
 		assert.throws(() => {
 			const fbServer = new FirebaseServer({server: httpServer, rest: true}, `localhost:${sequentialPort}`);
-			fbServer.close(() => {});
+			fbServer.close(() => 0);
 		}, Error, 'Incompatible options: server, rest');
 		done();
 	});
 
-	it('should successfully use port within options', done => {
+	it('should successfully use port within options', (done) => {
 		const fbServer = new FirebaseServer({port: sequentialPort}, `localhost:${sequentialPort}`);
 		sequentialPort++;
 		fbServer.close(done);
 	});
 
-	it('should successfully accept a client connection', done => {
+	it('should successfully accept a client connection', (done) => {
 		const port = newFirebaseServer();
 		const client = newFirebaseClient(port);
-		client.once('value', snap => {
+		client.once('value', (snap) => {
 			assert.equal(snap.val(), null);
 			done();
 		});
 	});
 
-	it('should accept initial data as the third constructor parameter', done => {
+	it('should accept initial data as the third constructor parameter', (done) => {
 		const port = newFirebaseServer({
-			Firebase: 'great!'
+			Firebase: 'great!',
 		});
 		const client = newFirebaseClient(port);
-		client.on('value', snap => {
+		client.on('value', (snap) => {
 			if (snap.val() === null) {
 				return;
 			}
 			assert.deepEqual(snap.val(), {
-				Firebase: 'great!'
+				Firebase: 'great!',
 			});
 			client.off('value');
 			done();
 		});
 	});
 
-	it('should return the correct value for child nodes', done => {
+	it('should return the correct value for child nodes', (done) => {
 		const port = newFirebaseServer({
 			states: {
-				CA: 'California',
 				AL: 'Alabama',
-				KY: 'Kentucky'
-			}
+				CA: 'California',
+				KY: 'Kentucky',
+			},
 		});
 		const client = newFirebaseClient(port);
-		client.child('states').child('CA').once('value', snap => {
+		client.child('states').child('CA').once('value', (snap) => {
 			assert.equal(snap.val(), 'California');
 			done();
 		});
 	});
 
 	describe('#update', () => {
-		it('should update the given child', done => {
+		it('should update the given child', (done) => {
 			const port = newFirebaseServer({
 				states: {
-					CA: 'California',
 					AL: 'Alabama',
-					KY: 'Kentucky'
-				}
+					CA: 'California',
+					KY: 'Kentucky',
+				},
 			});
 			const client = newFirebaseClient(port);
 			client.child('states').update({
+				CA: 'Toronto',
 				NY: 'New York',
-				CA: 'Toronto'
 			}, co.wrap(function *(err) {
 				assert.ok(!err, 'update() call returned an error');
 				assert.deepEqual((yield server.getValue()), {
 					states: {
-						NY: 'New York',
-						CA: 'Toronto',
 						AL: 'Alabama',
-						KY: 'Kentucky'
-					}
+						CA: 'Toronto',
+						KY: 'Kentucky',
+						NY: 'New York',
+					},
 				});
 				done();
 			}));
 		});
 
-		it('should support `firebase.database.ServerValue.TIMESTAMP` values', done => {
+		it('should support `firebase.database.ServerValue.TIMESTAMP` values', (done) => {
 			const port = newFirebaseServer({
+				firebase: 'awesome',
 				initialData: true,
-				firebase: 'awesome'
 			});
 			server.setTime(256256256);
 			const client = newFirebaseClient(port);
 			client.update({
-				'lastUpdated': firebase.database.ServerValue.TIMESTAMP
+				lastUpdated: firebase.database.ServerValue.TIMESTAMP,
 			}, co.wrap(function *(err) {
 				assert.ok(!err, 'set() call returned an error');
 				assert.deepEqual((yield server.getValue()), {
-					initialData: true,
 					firebase: 'awesome',
-					lastUpdated: 256256256
+					initialData: true,
+					lastUpdated: 256256256,
 				});
 				done();
 			}));
@@ -213,44 +213,44 @@ describe('Firebase Server', () => {
 	});
 
 	describe('#set', () => {
-		it('should update server data after calling `set()` from a client', done => {
+		it('should update server data after calling `set()` from a client', (done) => {
 			const port = newFirebaseServer();
 			const client = newFirebaseClient(port);
 			client.set({
-				'foo': 'bar'
+				foo: 'bar',
 			}, co.wrap(function *(err) {
 				assert.ok(!err, 'set() call returned an error');
 				assert.deepEqual((yield server.getValue()), {
-					'foo': 'bar'
+					foo: 'bar',
 				});
 				done();
 			}));
 		});
 
-		it('should combine websocket frame chunks', done => {
+		it('should combine websocket frame chunks', (done) => {
 			const port = newFirebaseServer();
 			const client = newFirebaseClient(port);
 			client.set({
-				'foo': _.times(2000,String)
+				foo: _.times(2000, String),
 			}, co.wrap(function *(err) {
 				assert.ok(!err, 'set() call returned an error');
 				assert.deepEqual((yield server.getValue()), {
-					'foo': _.times(2000,String)
+					foo: _.times(2000, String),
 				});
 				done();
 			}));
 		});
 
-		it('should support `firebase.database.ServerValue.TIMESTAMP` values', done => {
+		it('should support `firebase.database.ServerValue.TIMESTAMP` values', (done) => {
 			const port = newFirebaseServer();
 			server.setTime(50001000102);
 			const client = newFirebaseClient(port);
 			client.set({
-				'lastUpdated': firebase.database.ServerValue.TIMESTAMP
+				lastUpdated: firebase.database.ServerValue.TIMESTAMP,
 			}, co.wrap(function *(err) {
 				assert.ok(!err, 'set() call returned an error');
 				assert.deepEqual((yield server.getValue()), {
-					lastUpdated: 50001000102
+					lastUpdated: 50001000102,
 				});
 				done();
 			}));
@@ -258,25 +258,25 @@ describe('Firebase Server', () => {
 	});
 
 	describe('#remove', () => {
-		it('should remove the child', done => {
+		it('should remove the child', (done) => {
 			const port = newFirebaseServer({
-				'child1': 1,
-				'child2': 5
+				child1: 1,
+				child2: 5,
 			});
 			const client = newFirebaseClient(port);
 			client.child('child1').remove(co.wrap(function *(err) {
 				assert.ok(!err, 'remove() call returned an error');
 				assert.deepEqual((yield server.getValue()), {
-					'child2': 5
+					child2: 5,
 				});
 				done();
 			}));
 		});
 
-		it('should trigger a "value" event with null', done => {
+		it('should trigger a "value" event with null', (done) => {
 			const port = newFirebaseServer({
-				'child1': 1,
-				'child2': 5
+				child1: 1,
+				child2: 5,
 			});
 			const client1 = newFirebaseClient(port);
 			const client2 = newFirebaseClient(port);
@@ -284,7 +284,7 @@ describe('Firebase Server', () => {
 			let doneGates = 0;
 
 			function doRemove() {
-				client1.child('child1').remove(err => {
+				client1.child('child1').remove((err) => {
 					assert.ok(!err, 'remove() call returned an error');
 					assert.ok(++doneGates <= 3);
 					if (doneGates === 3) {
@@ -311,10 +311,10 @@ describe('Firebase Server', () => {
 	});
 
 	describe('#transaction', () => {
-		it('should save new data to the given location', done => {
+		it('should save new data to the given location', (done) => {
 			const port = newFirebaseServer({});
 			const client = newFirebaseClient(port);
-			client.child('users').child('wilma').transaction(currentData => {
+			client.child('users').child('wilma').transaction((currentData) => {
 				assert.equal(currentData, null);
 				return {name: {first: 'Wilma', last: 'Flintstone'}};
 			}, co.wrap(function *(error, committed, snapshot) {
@@ -326,21 +326,21 @@ describe('Firebase Server', () => {
 			}));
 		});
 
-		it('should return existing data inside the updateFunction function', done => {
+		it('should return existing data inside the updateFunction function', (done) => {
 			const port = newFirebaseServer({
 				users: {
 					uri: {
 						name: {
 							first: 'Uri',
 							last: 'Shaked',
-						}
-					}
-				}
+						},
+					},
+				},
 			});
 			const client = newFirebaseClient(port);
 
 			let firstTime = true;
-			client.child('users').child('uri').transaction(currentData => {
+			client.child('users').child('uri').transaction((currentData) => {
 				if (firstTime) {
 					assert.deepEqual(currentData, null);
 					firstTime = false;
@@ -357,14 +357,14 @@ describe('Firebase Server', () => {
 			});
 		});
 
-		it('should successfully handle transactions for object nodes that have priority', done => {
+		it('should successfully handle transactions for object nodes that have priority', (done) => {
 			const port = newFirebaseServer({
 				'.priority': 500,
-				doge: 'such transaction'
+				'doge': 'such transaction',
 			});
 			const client = newFirebaseClient(port);
 
-			client.transaction(currentData => 'very priority', (error, committed, snapshot) => {
+			client.transaction((currentData) => 'very priority', (error, committed, snapshot) => {
 				assert.equal(error, null);
 				assert.equal(committed, true);
 				assert.deepEqual(snapshot.val(), 'very priority');
@@ -372,14 +372,14 @@ describe('Firebase Server', () => {
 			});
 		});
 
-		it('should successfully handle transactions for primitive nodes that have priority', done => {
+		it('should successfully handle transactions for primitive nodes that have priority', (done) => {
 			const port = newFirebaseServer();
 			const client = newFirebaseClient(port);
 			client.setWithPriority(true, 200);
 
-			client.transaction(currentData => ({
-                newValue: true
-            }), (error, committed, snapshot) => {
+			client.transaction((currentData) => ({
+				newValue: true,
+			}), (error, committed, snapshot) => {
 				assert.equal(error, null);
 				assert.equal(committed, true);
 				assert.deepEqual(snapshot.val(), {newValue: true});
@@ -387,20 +387,20 @@ describe('Firebase Server', () => {
 			});
 		});
 
-		it('should not update the data on server if the transaction was aborted', done => {
+		it('should not update the data on server if the transaction was aborted', (done) => {
 			const port = newFirebaseServer({
 				users: {
 					uri: {
 						name: {
 							first: 'Uri',
 							last: 'Shaked',
-						}
-					}
-				}
+						},
+					},
+				},
 			});
 			const client = newFirebaseClient(port);
 
-			client.child('users').child('uri').transaction(currentData => {
+			client.child('users').child('uri').transaction((currentData) => {
 				if (currentData === null) {
 					return 'new-data';
 				} else {
@@ -417,124 +417,124 @@ describe('Firebase Server', () => {
 	});
 
 	describe('security rules', () => {
-		it('should forbid reading data when there is no read permission', done => {
+		it('should forbid reading data when there is no read permission', (done) => {
 			const port = newFirebaseServer({
-				Firebase: 'great!'
+				Firebase: 'great!',
 			});
 			server.setRules({
 				rules: {
-					'.read': false
-				}
+					'.read': false,
+				},
 			});
 
 			const client = newFirebaseClient(port);
 			client.on('value', () => {
 				client.off('value');
 				done(new Error('Client has read permission despite security rules'));
-			}, err => {
+			}, (err) => {
 				assert.equal(err.code, 'PERMISSION_DENIED');
 				done();
 			});
 		});
 
-		it('should forbid writing when there is no write permission', done => {
+		it('should forbid writing when there is no write permission', (done) => {
 			const port = newFirebaseServer({
-				Firebase: 'great!'
-			});
-			server.setRules({
-				rules: {
-					'.write': false
-				}
-			});
-
-			const client = newFirebaseClient(port);
-			client.set({
-				'foo': 'bar'
-			}, co.wrap(function *(err) {
-				assert.ok(err, 'set() should have returned an error');
-				assert.equal(err.code, 'PERMISSION_DENIED');
-				assert.deepEqual((yield server.getValue()), {
-					Firebase: 'great!'
-				});
-				done();
-			}));
-		});
-
-		it('should forbid updates when there is no write permission', done => {
-			const port = newFirebaseServer({
-				Firebase: 'great!'
-			});
-			server.setRules({
-				rules: {
-					'.write': false
-				}
-			});
-
-			const client = newFirebaseClient(port);
-			client.update({
-				'foo': 'bar'
-			}, co.wrap(function *(err) {
-				assert.ok(err, 'update() should have returned an error');
-				assert.equal(err.code, 'PERMISSION_DENIED');
-				assert.deepEqual((yield server.getValue()), {
-					Firebase: 'great!'
-				});
-				done();
-			}));
-		});
-
-		it('should allow updates to children with different paths', done => {
-			const port = newFirebaseServer({
-				directories: {
-					alice: 'great!'
-				}
+				Firebase: 'great!',
 			});
 			server.setRules({
 				rules: {
 					'.write': false,
-					users: {
-						'.write': true
-					},
-					directories: {
-						'.write': true
-					}
-				}
+				},
+			});
+
+			const client = newFirebaseClient(port);
+			client.set({
+				foo: 'bar',
+			}, co.wrap(function *(err) {
+				assert.ok(err, 'set() should have returned an error');
+				assert.equal(err.code, 'PERMISSION_DENIED');
+				assert.deepEqual((yield server.getValue()), {
+					Firebase: 'great!',
+				});
+				done();
+			}));
+		});
+
+		it('should forbid updates when there is no write permission', (done) => {
+			const port = newFirebaseServer({
+				Firebase: 'great!',
+			});
+			server.setRules({
+				rules: {
+					'.write': false,
+				},
 			});
 
 			const client = newFirebaseClient(port);
 			client.update({
-				'users/bob': 'foo',
+				foo: 'bar',
+			}, co.wrap(function *(err) {
+				assert.ok(err, 'update() should have returned an error');
+				assert.equal(err.code, 'PERMISSION_DENIED');
+				assert.deepEqual((yield server.getValue()), {
+					Firebase: 'great!',
+				});
+				done();
+			}));
+		});
+
+		it('should allow updates to children with different paths', (done) => {
+			const port = newFirebaseServer({
+				directories: {
+					alice: 'great!',
+				},
+			});
+			server.setRules({
+				rules: {
+					'.write': false,
+					'directories': {
+						'.write': true,
+					},
+					'users': {
+						'.write': true,
+					},
+				},
+			});
+
+			const client = newFirebaseClient(port);
+			client.update({
 				'directories/bob': 'bar',
+				'users/bob': 'foo',
 			}, co.wrap(function *(err) {
 				if (err) {
 					done(err);
 					return;
 				}
 				assert.deepEqual((yield server.getValue()), {
-					users: {
-						bob: 'foo'
-					},
 					directories: {
+						alice: 'great!',
 						bob: 'bar',
-						alice: 'great!'
-					}
+					},
+					users: {
+						bob: 'foo',
+					},
 				});
 				done();
 			}));
 		});
 
-		it('should use custom token to deny read', done => {
+		it('should use custom token to deny read', (done) => {
 			const port = newFirebaseServer({
 				user1: 'foo',
-				user2: 'bar'
+				user2: 'bar',
 			});
 
 			server.setRules({
 				rules: {
-					'$user': {
-						'.read': '$user === auth.uid'
-					}
-				}
+					$user: {
+						'.read': '$user === auth.uid',
+					},
+				},
 			});
 
 			authToken = tokenGenerator.createToken({uid: 'user1'});
@@ -542,47 +542,47 @@ describe('Firebase Server', () => {
 			client.child('user2').on('value', () => {
 				client.off('value');
 				done(new Error('Client has read permission despite security rules'));
-			}, err2 => {
+			}, (err2) => {
 				assert.equal(err2.code, 'PERMISSION_DENIED');
 				done();
 			});
 		});
 
-		it('should use custom token to allow read', done => {
+		it('should use custom token to allow read', (done) => {
 			const port = newFirebaseServer({
 				user1: 'foo',
-				user2: 'bar'
+				user2: 'bar',
 			});
 
 			server.setRules({
 				rules: {
-					'$user': {
-						'.read': '$user === auth.uid'
-					}
-				}
+					$user: {
+						'.read': '$user === auth.uid',
+					},
+				},
 			});
 
 			authToken = tokenGenerator.createToken({uid: 'user2'});
 			const client = newFirebaseClient(port);
-			client.child('user2').on('value', snap => {
+			client.child('user2').on('value', (snap) => {
 				client.off('value');
 				assert.equal(snap.val(), 'bar');
 				done();
-			}, err2 => {
+			}, (err2) => {
 				if (err2) {
 					done(err2);
 				}
 			});
 		});
 
-		it('should succeed in comparing ServerValue.TIMESTAMP to now', done => {
+		it('should succeed in comparing ServerValue.TIMESTAMP to now', (done) => {
 			const port = newFirebaseServer({
-				Firebase: 'great!'
+				Firebase: 'great!',
 			});
 			server.setRules({
 				rules: {
-					'timestamp': {
-						'.write': 'newData.val() === now'
+					timestamp: {
+						'.write': 'newData.val() === now',
 					},
 				},
 			});
@@ -597,10 +597,10 @@ describe('Firebase Server', () => {
 					}
 					assert((yield server.getValue()).timestamp);
 					client.update({
-						'timestamp': firebase.database.ServerValue.TIMESTAMP,
-					}, co.wrap(function *(err) {
-						if (err) {
-							done(err);
+						timestamp: firebase.database.ServerValue.TIMESTAMP,
+					}, co.wrap(function *(err2) {
+						if (err2) {
+							done(err2);
 							return;
 						}
 						assert((yield server.getValue()).timestamp);
@@ -611,29 +611,29 @@ describe('Firebase Server', () => {
 	});
 
 	describe('#setPriority', () => {
-		it('should update the priority value for the given child', done => {
+		it('should update the priority value for the given child', (done) => {
 			const port = newFirebaseServer({
 				states: {
 					AL: 'Alabama',
 					CA: 'California',
-					KY: 'Kentucky'
-				}
+					KY: 'Kentucky',
+				},
 			});
 
 			const client = newFirebaseClient(port);
 
 			function assertServerValues() {
 				server.exportData()
-					.then(exportVal => {
+					.then((exportVal) => {
 						assert.deepEqual(exportVal, {
 							states: {
 								AL: 'Alabama',
+								CA: 'California',
 								KY: {
+									'.priority': 100,
 									'.value': 'Kentucky',
-									'.priority': 100
 								},
-								CA: 'California'
-							}
+							},
 						});
 						done();
 					})
@@ -645,29 +645,29 @@ describe('Firebase Server', () => {
 	});
 
 	describe('#setWithPriority', () => {
-		it('should update both the value and the priority value for the given child', done => {
+		it('should update both the value and the priority value for the given child', (done) => {
 			const port = newFirebaseServer({
 				states: {
 					AL: 'Alabama',
 					CA: 'California',
-					KY: 'Kentucky'
-				}
+					KY: 'Kentucky',
+				},
 			});
 
 			const client = newFirebaseClient(port);
 
 			function assertServerValues() {
 				server.exportData()
-					.then(exportVal => {
+					.then((exportVal) => {
 						assert.deepEqual(exportVal, {
 							states: {
 								AL: 'Alabama',
+								CA: 'California',
 								KY: {
+									'.priority': 400,
 									'.value': 'K-tucky',
-									'.priority': 400
 								},
-								CA: 'California'
-							}
+							},
 						});
 						done();
 					})
@@ -679,25 +679,25 @@ describe('Firebase Server', () => {
 	});
 
 	describe('server priority', () => {
-		it('should be reflected when calling snapshot.exportVal() on client', done => {
+		it('should be reflected when calling snapshot.exportVal() on client', (done) => {
 			const port = newFirebaseServer({
 				states: {
 					AL: {
+						'.priority': 418,
 						'.value': 'Alabama',
-						'.priority': 418
 					},
 					CA: 'California',
-					KY: 'Kentucky'
-				}
+					KY: 'Kentucky',
+				},
 			});
 
 			const client = newFirebaseClient(port);
-			client.child('states').child('AL').on('value', snap => {
+			client.child('states').child('AL').on('value', (snap) => {
 				assert.deepEqual(snap.val(), 'Alabama');
 
 				assert.deepEqual(snap.exportVal(), {
+					'.priority': 418,
 					'.value': 'Alabama',
-					'.priority': 418
 				});
 
 				done();
@@ -706,15 +706,15 @@ describe('Firebase Server', () => {
 	});
 
 	describe('FirebaseServer.getData()', () => {
-		it('should synchronously return the most up-to-date server data', done => {
+		it('should synchronously return the most up-to-date server data', (done) => {
 			const port = newFirebaseServer();
 			const client = newFirebaseClient(port);
 			client.set({
-				'foo': 'bar'
-			}, err => {
+				foo: 'bar',
+			}, (err) => {
 				assert.ok(!err, 'set() call returned an error');
 				assert.deepEqual(server.getData(), {
-					foo: 'bar'
+					foo: 'bar',
 				});
 				done();
 			});
@@ -722,7 +722,7 @@ describe('Firebase Server', () => {
 	});
 
 	describe('FirebaseServer.close()', () => {
-		it('should call the callback when closed', done => {
+		it('should call the callback when closed', (done) => {
 			newFirebaseServer();
 			setImmediate(() => {
 				server.close(() => {
@@ -733,12 +733,12 @@ describe('Firebase Server', () => {
 	});
 
 	describe('FirebaseServer.setAuthSecret()', () => {
-		it('should accept raw secret when handling admin authentication', done => {
+		it('should accept raw secret when handling admin authentication', (done) => {
 			const port = newFirebaseServer();
 			server.setAuthSecret('test-secret');
 			authToken = 'test-secret';
 			const client = newFirebaseClient(port);
-			client.once('value', snap => {
+			client.once('value', (snap) => {
 				assert.equal(snap.val(), null);
 				done();
 			});
@@ -746,7 +746,7 @@ describe('Firebase Server', () => {
 
 		// Apparently, I haven't found a way to verify that the token was indeed reject.
 		// Thus, this test is disabled for the time being.
-		xit('should reject invalid auth requests with raw secret', done => {
+		xit('should reject invalid auth requests with raw secret', (done) => {
 			const port = newFirebaseServer();
 			server.setAuthSecret('test-secret');
 			authToken = 'invalid-secret';
