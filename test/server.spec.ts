@@ -551,7 +551,7 @@ describe('Firebase Server', () => {
 			server.setRules({
 				rules: {
 					timestamp: {
-						'.write': 'newData.val() === now',
+						'.write': 'newData.val() >= now && newData.val() < now + 100',
 					},
 				},
 			});
