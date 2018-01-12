@@ -1,5 +1,5 @@
 /* License: MIT.
- * Copyright (C) 2013, 2014, 2015, 2016, Uri Shaked.
+ * Copyright (C) 2013, 2014, 2015, 2016, 2017, 2018, Uri Shaked.
  */
 
 import * as assert from 'assert';
