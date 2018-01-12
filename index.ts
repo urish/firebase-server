@@ -54,83 +54,90 @@ function normalizePath(fullPath) {
 	};
 }
 
-function FirebaseServer(portOrOptions, name, data) {
-	this.name = name || 'mock.firebase.server';
+class FirebaseServer {
+	private app;
+	private baseRef;
+	private authSecret;
+	private targaryen;
+	private https;
+	private wss;
+	private clock;
+	private tokenValidator;
 
-	// Firebase is more than just a "database" now; the "realtime database" is
-	// just one of many services provided by a Firebase "App" container.
-	// The Firebase library must be initialized with an App, and that app
-	// must have a name - either a name you choose, or '[DEFAULT]' which
-	// the library will substitute for you if you do not provide one.
-	// An important aspect of App names is that multiple instances of the
-	// Firebase client with the same name will share a local cache instead of
-	// talking "through" our server. So to prevent that from happening, we are
-	// choosing a probably-unique name that a developer would not choose for
-	// their "real" Firebase client instances.
-	const appName = `firebase-server-internal-${this.name}-${serverID++}`;
+	constructor(portOrOptions, private name = 'mock.firebase.server', data = null) {
+		// Firebase is more than just a "database" now; the "realtime database" is
+		// just one of many services provided by a Firebase "App" container.
+		// The Firebase library must be initialized with an App, and that app
+		// must have a name - either a name you choose, or '[DEFAULT]' which
+		// the library will substitute for you if you do not provide one.
+		// An important aspect of App names is that multiple instances of the
+		// Firebase client with the same name will share a local cache instead of
+		// talking "through" our server. So to prevent that from happening, we are
+		// choosing a probably-unique name that a developer would not choose for
+		// their "real" Firebase client instances.
+		const appName = `firebase-server-internal-${this.name}-${serverID++}`;
 
-	// We must pass a "valid looking" configuration to initializeApp for its
-	// internal checks to pass.
-	const config = {
-		databaseURL: 'ws://fakeserver.firebaseio.test',
-	};
-	this.app = firebase.initializeApp(config, appName);
-	this.app.database().goOffline();
+		// We must pass a "valid looking" configuration to initializeApp for its
+		// internal checks to pass.
+		const config = {
+			databaseURL: 'ws://fakeserver.firebaseio.test',
+		};
+		this.app = firebase.initializeApp(config, appName);
+		this.app.database().goOffline();
 
-	this.baseRef = this.app.database().ref();
+		this.baseRef = this.app.database().ref();
 
-	this.baseRef.set(data || null);
+		this.baseRef.set(data);
 
-	this._targaryen = targaryen.database({
-		rules: {
-			'.read': true,
-			'.write': true,
-		},
-	}, data);
+		this.targaryen = targaryen.database({
+			rules: {
+				'.read': true,
+				'.write': true,
+			},
+		}, data);
 
-	let options;
-	let port;
-	if (typeof portOrOptions === 'object') {
-		options = portOrOptions;
-		if (options.server) {
-			const address = options.server.address();
-			if (address) {
-				port = address.port;
-			} else if (options.port) {
-				port = options.port;
+		let options;
+		let port;
+		if (typeof portOrOptions === 'object') {
+			options = portOrOptions;
+			if (options.server) {
+				const address = options.server.address();
+				if (address) {
+					port = address.port;
+				} else if (options.port) {
+					port = options.port;
+				} else {
+					throw new Error('Port not given in options and also not obtainable from server');
+				}
 			} else {
-				throw new Error('Port not given in options and also not obtainable from server');
+				port = options.port;
 			}
 		} else {
-			port = options.port;
+			port = portOrOptions;
+			options = { port };
 		}
-	} else {
-		port = portOrOptions;
-		options = {port};
+
+		if (options.server && options.rest) {
+			throw new Error('Incompatible options: server, rest');
+		} else if (options.rest) {
+			this.https = HttpServer(port, options.address, this.app.database());
+			options = { server: this.https };
+		}
+
+		if (options.address) {
+			options = Object.assign({}, options, { host: options.address });
+		}
+
+		this.wss = new WebSocketServer(options);
+
+		this.clock = new TestableClock();
+		this.tokenValidator = TokenValidator(null, this.clock);
+
+		this.wss.on('connection', this.handleConnection.bind(this));
+		log(`Listening for connections on port ${port}`);
 	}
 
-	if (options.server && options.rest) {
-		throw new Error('Incompatible options: server, rest');
-	} else if (options.rest) {
-		this._https = HttpServer(port, options.address, this.app.database());
-		options = {server: this._https};
-	}
-
-	if (options.address) {
-		options = Object.assign({}, options, {host: options.address});
-	}
-
-	this._wss = new WebSocketServer(options);
-
-	this._clock = new TestableClock();
-	this._tokenValidator = TokenValidator(null, this._clock);
-
-	this._wss.on('connection', this.handleConnection.bind(this));
-	log(`Listening for connections on port ${port}`);
-}
-
-FirebaseServer.prototype = {
-	handleConnection(ws) {
+	protected handleConnection(ws) {
 		log(`New connection from ${ws._socket.remoteAddress}:${ws._socket.remotePort}`);
 		const server = this;
 		let authToken = null;
@@ -149,7 +156,7 @@ FirebaseServer.prototype = {
 			let data;
 			if (authToken) {
 				try {
-					const decodedToken = server._tokenValidator.decode(authToken);
+					const decodedToken = server.tokenValidator.decode(authToken);
 					if ('d' in decodedToken) {
 						data = decodedToken.d;
 					} else {
@@ -169,11 +176,11 @@ FirebaseServer.prototype = {
 		}
 
 		function pushData(path, data) {
-			send({d: {a: 'd', b: {p: path, d: data}}, t: 'd'});
+			send({ d: { a: 'd', b: { p: path, d: data } }, t: 'd' });
 		}
 
 		function permissionDenied(requestId) {
-			send({d: {r: requestId, b: {s: 'permission_denied', d: 'Permission denied'}}, t: 'd'});
+			send({ d: { r: requestId, b: { s: 'permission_denied', d: 'Permission denied' } }, t: 'd' });
 		}
 
 		function replaceServerTimestamp(value, data) {
@@ -187,7 +194,7 @@ FirebaseServer.prototype = {
 		}
 
 		function tryRead(requestId, path) {
-			const result = server._targaryen.as(authData()).read(path);
+			const result = server.targaryen.as(authData()).read(path);
 			if (!result.allowed) {
 				permissionDenied(requestId);
 				throw new Error(`Permission denied for client to read from ${path}: ${result.info}`);
@@ -195,21 +202,21 @@ FirebaseServer.prototype = {
 		}
 
 		function tryPatch(requestId, path, newData, now) {
-			const result = server._targaryen.as(authData()).update(path, newData, now);
+			const result = server.targaryen.as(authData()).update(path, newData, now);
 			if (!result.allowed) {
 				permissionDenied(requestId);
 				throw new Error(`Permission denied for client to update at ${path}: ${result.info}`);
 			}
-			server._targaryen = result.newDatabase;
+			server.targaryen = result.newDatabase;
 		}
 
 		function tryWrite(requestId, path, newData, now) {
-			const result = server._targaryen.as(authData()).write(path, newData, now);
+			const result = server.targaryen.as(authData()).write(path, newData, now);
 			if (!result.allowed) {
 				permissionDenied(requestId);
 				throw new Error(`Permission denied for client to write to ${path}: ${result.info}`);
 			}
-			server._targaryen = result.newDatabase;
+			server.targaryen = result.newDatabase;
 		}
 
 		function handleListen(requestId, normalizedPath, fbRef) {
@@ -230,7 +237,7 @@ FirebaseServer.prototype = {
 				pushData(path, snap.exportVal());
 				if (sendOk) {
 					sendOk = false;
-					send({d: {r: requestId, b: {s: 'ok', d: {}}}, t: 'd'});
+					send({ d: { r: requestId, b: { s: 'ok', d: {} } }, t: 'd' });
 				}
 			});
 		}
@@ -239,7 +246,7 @@ FirebaseServer.prototype = {
 			const path = normalizedPath.path;
 			log(`Client update ${path}`);
 
-			const now = server._clock();
+			const now = server.clock();
 			newData = replaceServerTimestamp(now, newData);
 
 			try {
@@ -250,7 +257,7 @@ FirebaseServer.prototype = {
 			}
 
 			fbRef.update(newData);
-			send({d: {r: requestId, b: {s: 'ok', d: {}}}, t: 'd'});
+			send({ d: { r: requestId, b: { s: 'ok', d: {} } }, t: 'd' });
 		}
 
 		function handleSet(requestId, normalizedPath, fbRef, newData, hash) {
@@ -259,7 +266,7 @@ FirebaseServer.prototype = {
 			let progress = Promise.resolve();
 			const path = normalizedPath.path;
 
-			const now = server._clock();
+			const now = server.clock();
 			newData = replaceServerTimestamp(now, newData);
 
 			if (normalizedPath.isPriorityPath) {
@@ -285,7 +292,7 @@ FirebaseServer.prototype = {
 					const calculatedHash = getFirebaseHash(snap.exportVal());
 					if (hash !== calculatedHash) {
 						pushData(path, snap.exportVal());
-						send({d: {r: requestId, b: {s: 'datastale', d: 'Transaction hash does not match'}}, t: 'd'});
+						send({ d: { r: requestId, b: { s: 'datastale', d: 'Transaction hash does not match' } }, t: 'd' });
 						throw new Error(`Transaction hash does not match: ${hash} !== ${calculatedHash}`);
 					}
 				});
@@ -294,13 +301,13 @@ FirebaseServer.prototype = {
 			progress.then(() => {
 				fbRef.set(newData);
 				fbRef.once('value', (snap) => {
-					send({d: {r: requestId, b: {s: 'ok', d: {}}}, t: 'd'});
+					send({ d: { r: requestId, b: { s: 'ok', d: {} } }, t: 'd' });
 				});
 			}).catch(log);
 		}
 
 		function handleAuth(requestId, credential) {
-			if (server._authSecret === credential) {
+			if (server.authSecret === credential) {
 				return send({
 					d: {
 						b: {
@@ -314,11 +321,11 @@ FirebaseServer.prototype = {
 			}
 
 			try {
-				const decoded = server._tokenValidator.decode(credential);
+				const decoded = server.tokenValidator.decode(credential);
 				authToken = credential;
-				return send({t: 'd', d: {r: requestId, b: {s: 'ok', d: normalize(decoded)}}});
+				return send({ t: 'd', d: { r: requestId, b: { s: 'ok', d: normalize(decoded) } } });
 			} catch (e) {
-				return send({t: 'd', d: {r: requestId, b: {s: 'invalid_token', d: 'Could not parse auth token.'}}});
+				return send({ t: 'd', d: { r: requestId, b: { s: 'invalid_token', d: 'Could not parse auth token.' } } });
 			}
 		}
 
@@ -370,14 +377,14 @@ FirebaseServer.prototype = {
 			}
 		});
 
-		send({d: {t: 'h', d: {ts: new Date().getTime(), v: '5', h: this.name, s: ''}}, t: 'c'});
-	},
+		send({ d: { t: 'h', d: { ts: new Date().getTime(), v: '5', h: this.name, s: '' } }, t: 'c' });
+	}
 
-	setRules(rules) {
-		this._targaryen = this._targaryen.with({ rules });
-	},
+	public setRules(rules) {
+		this.targaryen = this.targaryen.with({ rules });
+	}
 
-	getData(ref) {
+	public getData(ref) {
 		// tslint:disable-next-line:no-console
 		console.warn('FirebaseServer.getData() is deprecated! Please use FirebaseServer.getValue() instead');
 		let result = null;
@@ -385,38 +392,38 @@ FirebaseServer.prototype = {
 			result = snap.val();
 		});
 		return result;
-	},
+	}
 
-	getSnap(ref) {
+	public getSnap(ref) {
 		return getSnap(ref || this.baseRef);
-	},
+	}
 
-	getValue(ref) {
-		return this.getSnap(ref).then((snap) => snap.val());
-	},
+	public getValue(ref) {
+		return this.getSnap(ref).then((snap: firebase.database.DataSnapshot) => snap.val());
+	}
 
-	exportData(ref) {
+	public exportData(ref) {
 		return exportData(ref || this.baseRef);
-	},
+	}
 
-	close(callback) {
+	public close(callback) {
 		let cb;
-		if (this._https) {
-			cb = () => this._https.close(callback);
+		if (this.https) {
+			cb = () => this.https.close(callback);
 		} else {
 			cb = callback;
 		}
-		this._wss.close(cb);
-	},
+		this.wss.close(cb);
+	}
 
-	setTime(newTime) {
-		this._clock.setTime(newTime);
-	},
+	public setTime(newTime) {
+		this.clock.setTime(newTime);
+	}
 
-	setAuthSecret(newSecret) {
-		this._authSecret = newSecret;
-		this._tokenValidator.setSecret(newSecret);
-	},
-};
+	public setAuthSecret(newSecret) {
+		this.authSecret = newSecret;
+		this.tokenValidator.setSecret(newSecret);
+	}
+}
 
 export = FirebaseServer;

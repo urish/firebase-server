@@ -6,6 +6,7 @@
   "jsRules": {},
   "rules": {
 	"quotemark": [true, "single", "avoid-escape"],
+	"member-ordering": [false],
 	"indent": [true, "tabs"]
   },
   "rulesDirectory": []
