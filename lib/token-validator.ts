@@ -10,7 +10,7 @@ import * as jwt from 'jwt-simple';
 const TestableClock = require('./testable-clock');
 const low = debug('firebase-server:token-validator');
 
-export function TokenValidator(secret, time) {
+export function TokenValidator(secret, time?) {
 	if (!time && typeof secret !== 'string') {
 		time = secret;
 		secret = null;
@@ -27,7 +27,7 @@ export function TokenValidator(secret, time) {
 		return TokenValidator(secret, newClock);
 	}
 
-	function decode(token, noVerify) {
+	function decode(token, noVerify?) {
 		const decoded = jwt.decode(token, secret, !secret || noVerify);
 		if (!noVerify && !isValidTimestamp(decoded)) {
 			throw new Error('invalid timestamp');

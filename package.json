@@ -32,6 +32,7 @@
   ],
   "devDependencies": {
     "@types/debug": "0.0.30",
+    "@types/firebase-token-generator": "^2.0.28",
     "@types/jwt-simple": "^0.5.33",
     "@types/mocha": "^2.2.46",
     "bluebird": "2.10.2",

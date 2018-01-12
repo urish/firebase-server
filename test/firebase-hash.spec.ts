@@ -1,13 +1,9 @@
 /* License: MIT.
- * Copyright (C) 2013, 2014, 2015, Uri Shaked.
+ * Copyright (C) 2013-2018 Uri Shaked.
  */
 
-'use strict';
-
-const assert = require('assert');
-const { getFirebaseHash } = require('../lib/firebase-hash');
-
-/* global describe, it */
+import * as assert from 'assert';
+import { getFirebaseHash } from '../lib/firebase-hash';
 
 describe('#firebaseHash', () => {
 	it('should return empty hash string for null values', () => {
@@ -47,10 +43,10 @@ describe('#firebaseHash', () => {
 	});
 
 	it('should return correct hash for objects with a numeric priority', () => {
-		assert.equal(getFirebaseHash({'.priority': 128.256, someKey: 'value'}), 'WYR8kBGna+a7E5x75zvhPhzACOQ=');
+		assert.equal(getFirebaseHash({'.priority': 128.256, 'someKey': 'value'}), 'WYR8kBGna+a7E5x75zvhPhzACOQ=');
 	});
 
 	it('should return correct hash for objects with a string priority', () => {
-		assert.equal(getFirebaseHash({'.priority': 'high', someKey: 'value'}), '/KquMIGoCuKO/ipoLoQzqnU0BcI=');
+		assert.equal(getFirebaseHash({'.priority': 'high', 'someKey': 'value'}), '/KquMIGoCuKO/ipoLoQzqnU0BcI=');
 	});
 });

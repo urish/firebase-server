@@ -2,11 +2,11 @@
  * Copyright (C) 2015, James Talmage.
  */
 
-'use strict';
+import * as assert from 'assert';
+import  TokenGenerator = require('firebase-token-generator');
 
-const assert = require('assert');
-const { normalize, TokenValidator } = require('../lib/token-validator');
-const TokenGenerator = require('firebase-token-generator');
+import { normalize, TokenValidator } from '../lib/token-validator';
+
 const VERSION = 0;
 
 describe('token-validator', () => {
@@ -16,17 +16,14 @@ describe('token-validator', () => {
 
 		const token = generator.createToken(
 			{uid: 'encodeDecodeTest', customProperty: 'foo'},
-			{iat: 100}
+			{iat: 100},
 		);
 
-		assert.deepEqual(
-			validator.decode(token),
-			{
-				v: VERSION,
-				iat: 100,
-				d: {uid: 'encodeDecodeTest', customProperty: 'foo'}
-			}
-		);
+		assert.deepEqual(validator.decode(token), {
+			d: {uid: 'encodeDecodeTest', customProperty: 'foo'},
+			iat: 100,
+			v: VERSION,
+		});
 	});
 
 	it('#decode should include token options (e.g. iat, notBefore, expires) in decoded token', () => {
@@ -35,45 +32,43 @@ describe('token-validator', () => {
 
 		const token = generator.createToken(
 			{uid: 'expiresTest', customProperty: 'bar'},
-			{notBefore: 100, iat: 200, expires: 300, admin: true, debug: true, simulate: true}
+			{notBefore: 100, iat: 200, expires: 300, admin: true, debug: true, simulate: true},
 		);
 
 		assert.deepEqual(
-			validator.decode(token),
-			{
-				v: VERSION,
-				nbf: 100,
-				iat: 200,
-				exp: 300,
+			validator.decode(token), {
 				admin: true,
+				d: {uid: 'expiresTest', customProperty: 'bar'},
 				debug: true,
+				exp: 300,
+				iat: 200,
+				nbf: 100,
 				simulate: true,
-				d: {uid: 'expiresTest', customProperty: 'bar'}
-			}
+				v: VERSION,
+			},
 		);
 	});
 
 	it('#normalize should convert `nbf` and `exp` to longer form names', () => {
 		assert.deepEqual(
 			normalize({
-				v: VERSION,
-				nbf: 100,
-				iat: 200,
+				admin: true,
+				d: {uid: 'normalizeTest', foo: 'bar'},
+				debug: true,
 				exp: 300,
-				admin: true,
-				debug: true,
-				simulate: true,
-				d: {uid: 'normalizeTest', foo: 'bar'}
-			}),
-			{
-				notBefore: 100,
 				iat: 200,
-				expires: 300,
-				admin: true,
-				debug: true,
+				nbf: 100,
 				simulate: true,
-				auth: {uid: 'normalizeTest', foo: 'bar'}
-			}
+				v: VERSION,
+			}),	{
+				admin: true,
+				auth: {uid: 'normalizeTest', foo: 'bar'},
+				debug: true,
+				expires: 300,
+				iat: 200,
+				notBefore: 100,
+				simulate: true,
+			},
 		);
 	});
 
@@ -82,7 +77,7 @@ describe('token-validator', () => {
 		const validator = TokenValidator('goodSecret');
 
 		const token = generator.createToken(
-			{uid: 'expiresTest', customProperty: 'bar'}
+			{uid: 'expiresTest', customProperty: 'bar'},
 		);
 
 		assert.throws(() => {
@@ -92,7 +87,7 @@ describe('token-validator', () => {
 
 	it('should accept a custom clock function', () => {
 		const generator = new TokenGenerator('mySecret');
-		const token = generator.createToken({uid:'1'}, {iat: 100, notBefore: 200, expires: 300});
+		const token = generator.createToken({uid: '1'}, {iat: 100, notBefore: 200, expires: 300});
 
 		let time;
 		const validator = TokenValidator('mySecret', () => time * 1000);
@@ -104,14 +99,13 @@ describe('token-validator', () => {
 
 		time = 250;
 		assert.deepEqual(
-			validator.decode(token),
-			{
-				v: VERSION,
+			validator.decode(token), {
+				d: {uid: '1'},
+				exp: 300,
 				iat: 100,
 				nbf: 200,
-				exp: 300,
-				d: {uid: '1'}
-			}
+				v: VERSION,
+			},
 		);
 
 		time = 350;
@@ -122,7 +116,7 @@ describe('token-validator', () => {
 
 	it('#withTime should create a new token-validator with a different testable-clock', () => {
 		const generator = new TokenGenerator('mySecret');
-		const token = generator.createToken({uid:'1'}, {iat: 100, notBefore: 200, expires: 300});
+		const token = generator.createToken({uid: '1'}, {iat: 100, notBefore: 200, expires: 300});
 
 		const validator = TokenValidator('mySecret');
 
@@ -131,14 +125,13 @@ describe('token-validator', () => {
 		});
 
 		assert.deepEqual(
-			validator.withTime(250 * 1000).decode(token),
-			{
-				v: VERSION,
+			validator.withTime(250 * 1000).decode(token), {
+				d: {uid: '1'},
+				exp: 300,
 				iat: 100,
 				nbf: 200,
-				exp: 300,
-				d: {uid: '1'}
-			}
+				v: VERSION,
+			},
 		);
 
 		assert.throws(() => {
@@ -150,7 +143,7 @@ describe('token-validator', () => {
 		const generator1 = new TokenGenerator('secret1');
 		const generator2 = new TokenGenerator('secret2');
 
-		const validator = TokenValidator();
+		const validator = TokenValidator(undefined);
 
 		validator.decode(generator1.createToken({uid: '1'}));
 		validator.decode(generator2.createToken({uid: '1'}));

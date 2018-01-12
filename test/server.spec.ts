@@ -3,6 +3,7 @@
  */
 
 import * as assert from 'assert';
+import TokenGenerator = require('firebase-token-generator');
 import * as http from 'http';
 
 import FirebaseServer = require('../index');
@@ -55,7 +56,6 @@ firebase.INTERNAL.factories.auth = (app, extendApp) => {
 	});
 };
 
-const TokenGenerator = require('firebase-token-generator');
 const tokenGenerator = new TokenGenerator('goodSecret');
 
 describe('Firebase Server', () => {
