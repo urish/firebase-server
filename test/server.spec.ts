@@ -5,6 +5,8 @@
 import * as assert from 'assert';
 import * as http from 'http';
 
+import FirebaseServer = require('../index');
+
 const PORT = 46000;
 
 // tslint:disable:no-var-requires
@@ -53,7 +55,6 @@ firebase.INTERNAL.factories.auth = (app, extendApp) => {
 	});
 };
 
-const FirebaseServer = require('../index');
 const TokenGenerator = require('firebase-token-generator');
 const tokenGenerator = new TokenGenerator('goodSecret');
 
