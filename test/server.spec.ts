@@ -54,7 +54,6 @@ firebase.INTERNAL.factories.auth = (app, extendApp) => {
 };
 
 const FirebaseServer = require('../index');
-const co = require('co');
 const TokenGenerator = require('firebase-token-generator');
 const tokenGenerator = new TokenGenerator('goodSecret');
 
@@ -177,9 +176,9 @@ describe('Firebase Server', () => {
 			client.child('states').update({
 				CA: 'Toronto',
 				NY: 'New York',
-			}, co.wrap(function *(err) {
+			}, async (err) => {
 				assert.ok(!err, 'update() call returned an error');
-				assert.deepEqual((yield server.getValue()), {
+				assert.deepEqual((await server.getValue()), {
 					states: {
 						AL: 'Alabama',
 						CA: 'Toronto',
@@ -188,7 +187,7 @@ describe('Firebase Server', () => {
 					},
 				});
 				done();
-			}));
+			});
 		});
 
 		it('should support `firebase.database.ServerValue.TIMESTAMP` values', (done) => {
@@ -200,15 +199,15 @@ describe('Firebase Server', () => {
 			const client = newFirebaseClient(port);
 			client.update({
 				lastUpdated: firebase.database.ServerValue.TIMESTAMP,
-			}, co.wrap(function *(err) {
+			}, async (err) => {
 				assert.ok(!err, 'set() call returned an error');
-				assert.deepEqual((yield server.getValue()), {
+				assert.deepEqual((await server.getValue()), {
 					firebase: 'awesome',
 					initialData: true,
 					lastUpdated: 256256256,
 				});
 				done();
-			}));
+			});
 		});
 	});
 
@@ -218,13 +217,13 @@ describe('Firebase Server', () => {
 			const client = newFirebaseClient(port);
 			client.set({
 				foo: 'bar',
-			}, co.wrap(function *(err) {
+			}, async (err) => {
 				assert.ok(!err, 'set() call returned an error');
-				assert.deepEqual((yield server.getValue()), {
+				assert.deepEqual((await server.getValue()), {
 					foo: 'bar',
 				});
 				done();
-			}));
+			});
 		});
 
 		it('should combine websocket frame chunks', (done) => {
@@ -232,13 +231,13 @@ describe('Firebase Server', () => {
 			const client = newFirebaseClient(port);
 			client.set({
 				foo: _.times(2000, String),
-			}, co.wrap(function *(err) {
+			}, async (err) => {
 				assert.ok(!err, 'set() call returned an error');
-				assert.deepEqual((yield server.getValue()), {
+				assert.deepEqual((await server.getValue()), {
 					foo: _.times(2000, String),
 				});
 				done();
-			}));
+			});
 		});
 
 		it('should support `firebase.database.ServerValue.TIMESTAMP` values', (done) => {
@@ -247,13 +246,13 @@ describe('Firebase Server', () => {
 			const client = newFirebaseClient(port);
 			client.set({
 				lastUpdated: firebase.database.ServerValue.TIMESTAMP,
-			}, co.wrap(function *(err) {
+			}, async (err) => {
 				assert.ok(!err, 'set() call returned an error');
-				assert.deepEqual((yield server.getValue()), {
+				assert.deepEqual((await server.getValue()), {
 					lastUpdated: 50001000102,
 				});
 				done();
-			}));
+			});
 		});
 	});
 
@@ -264,13 +263,13 @@ describe('Firebase Server', () => {
 				child2: 5,
 			});
 			const client = newFirebaseClient(port);
-			client.child('child1').remove(co.wrap(function *(err) {
+			client.child('child1').remove(async (err) => {
 				assert.ok(!err, 'remove() call returned an error');
-				assert.deepEqual((yield server.getValue()), {
+				assert.deepEqual((await server.getValue()), {
 					child2: 5,
 				});
 				done();
-			}));
+			});
 		});
 
 		it('should trigger a "value" event with null', (done) => {
@@ -317,13 +316,13 @@ describe('Firebase Server', () => {
 			client.child('users').child('wilma').transaction((currentData) => {
 				assert.equal(currentData, null);
 				return {name: {first: 'Wilma', last: 'Flintstone'}};
-			}, co.wrap(function *(error, committed, snapshot) {
+			}, async (error, committed, snapshot) => {
 				assert.equal(error, null);
 				assert.equal(committed, true);
 				assert.deepEqual(snapshot.val(), {name: {first: 'Wilma', last: 'Flintstone'}});
-				assert.deepEqual((yield server.getValue()), {users: {wilma: {name: {first: 'Wilma', last: 'Flintstone'}}}});
+				assert.deepEqual((await server.getValue()), {users: {wilma: {name: {first: 'Wilma', last: 'Flintstone'}}}});
 				done();
-			}));
+			});
 		});
 
 		it('should return existing data inside the updateFunction function', (done) => {
@@ -406,13 +405,13 @@ describe('Firebase Server', () => {
 				} else {
 					return undefined;
 				}
-			}, co.wrap(function *(error, committed, snapshot) {
+			}, async (error, committed, snapshot) => {
 				assert.equal(error, null);
 				assert.equal(committed, false);
 				assert.deepEqual(snapshot.val(), {name: {first: 'Uri', last: 'Shaked'}});
-				assert.deepEqual((yield server.getValue()), {users: {uri: {name: {first: 'Uri', last: 'Shaked'}}}});
+				assert.deepEqual((await server.getValue()), {users: {uri: {name: {first: 'Uri', last: 'Shaked'}}}});
 				done();
-			}));
+			});
 		});
 	});
 
@@ -450,14 +449,14 @@ describe('Firebase Server', () => {
 			const client = newFirebaseClient(port);
 			client.set({
 				foo: 'bar',
-			}, co.wrap(function *(err) {
+			}, async (err) => {
 				assert.ok(err, 'set() should have returned an error');
 				assert.equal(err.code, 'PERMISSION_DENIED');
-				assert.deepEqual((yield server.getValue()), {
+				assert.deepEqual((await server.getValue()), {
 					Firebase: 'great!',
 				});
 				done();
-			}));
+			});
 		});
 
 		it('should forbid updates when there is no write permission', (done) => {
@@ -473,14 +472,14 @@ describe('Firebase Server', () => {
 			const client = newFirebaseClient(port);
 			client.update({
 				foo: 'bar',
-			}, co.wrap(function *(err) {
+			}, async (err) => {
 				assert.ok(err, 'update() should have returned an error');
 				assert.equal(err.code, 'PERMISSION_DENIED');
-				assert.deepEqual((yield server.getValue()), {
+				assert.deepEqual((await server.getValue()), {
 					Firebase: 'great!',
 				});
 				done();
-			}));
+			});
 		});
 
 		it('should allow updates to children with different paths', (done) => {
@@ -505,12 +504,12 @@ describe('Firebase Server', () => {
 			client.update({
 				'directories/bob': 'bar',
 				'users/bob': 'foo',
-			}, co.wrap(function *(err) {
+			}, async (err) => {
 				if (err) {
 					done(err);
 					return;
 				}
-				assert.deepEqual((yield server.getValue()), {
+				assert.deepEqual((await server.getValue()), {
 					directories: {
 						alice: 'great!',
 						bob: 'bar',
@@ -520,7 +519,7 @@ describe('Firebase Server', () => {
 					},
 				});
 				done();
-			}));
+			});
 		});
 
 		it('should use custom token to deny read', (done) => {
@@ -590,23 +589,23 @@ describe('Firebase Server', () => {
 			const client = newFirebaseClient(port);
 			client.child('timestamp').set(
 				firebase.database.ServerValue.TIMESTAMP,
-				co.wrap(function *(err) {
+				async (err) => {
 					if (err) {
 						done(err);
 						return;
 					}
-					assert((yield server.getValue()).timestamp);
+					assert((await server.getValue()).timestamp);
 					client.update({
 						timestamp: firebase.database.ServerValue.TIMESTAMP,
-					}, co.wrap(function *(err2) {
+					}, async (err2) => {
 						if (err2) {
 							done(err2);
 							return;
 						}
-						assert((yield server.getValue()).timestamp);
+						assert((await server.getValue()).timestamp);
 						done();
-					}));
-				}));
+					});
+				});
 		});
 	});
 
