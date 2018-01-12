@@ -1,14 +1,16 @@
 /* License: MIT.
  * Copyright (C) 2015, James Talmage.
+ * Copyright (C) 2018, Uri Shaked
  */
 
-'use strict';
+import * as debug from 'debug';
+import * as jwt from 'jwt-simple';
 
-const jwt = require('jwt-simple');
+// tslint:disable-next-line:no-var-requires
 const TestableClock = require('./testable-clock');
-const debug = require('debug')('firebase-server:token-validator');
+const low = debug('firebase-server:token-validator');
 
-function Generator (secret, time) {
+export function TokenValidator(secret, time) {
 	if (!time && typeof secret !== 'string') {
 		time = secret;
 		secret = null;
@@ -22,7 +24,7 @@ function Generator (secret, time) {
 	}
 
 	function withTime(newClock) {
-		return new Generator(secret, newClock);
+		return TokenValidator(secret, newClock);
 	}
 
 	function decode(token, noVerify) {
@@ -30,12 +32,11 @@ function Generator (secret, time) {
 		if (!noVerify && !isValidTimestamp(decoded)) {
 			throw new Error('invalid timestamp');
 		}
-		debug('decode(token: %j, secret: %j) => %j', token, secret, decoded);
+		low('decode(token: %j, secret: %j) => %j', token, secret, decoded);
 		return decoded;
 	}
 
-	function isValidTimestamp(claims, now) {
-		now = now || getTime();
+	function isValidTimestamp(claims, now = getTime()) {
 		const since = validSince(claims);
 		const until = validUntil(claims);
 		return typeof now === 'number' &&
@@ -50,25 +51,24 @@ function Generator (secret, time) {
 	}
 
 	function withSecret(newSecret) {
-		return new Generator(newSecret, time);
+		return TokenValidator(newSecret, time);
 	}
 
 	return {
 		decode,
-		setTime: clock.setTime,
-		withTime,
-		isValidTimeStamp: isValidTimestamp,
+		isValidTimestamp,
+		normalize,
 		setSecret,
+		setTime: clock.setTime,
 		withSecret,
-		normalize
+		withTime,
 	};
 }
 
-function normalize(input) {
+export function normalize(input) {
 	const normal = {};
 
-	function grab(a, b) {
-		b = b || a;
+	function grab(a, b = a) {
 		if (input.hasOwnProperty(a)) {
 			normal[b] = input[a];
 		} else if (input.hasOwnProperty(b)) {
@@ -89,28 +89,25 @@ function normalize(input) {
 }
 
 function validUntil(claims) {
-	let _validUntil;
+	let result;
 	if (typeof claims === 'object') {
 		if (claims.hasOwnProperty('exp')) {
-			_validUntil = claims.exp;
+			result = claims.exp;
 		} else {
-			_validUntil = validSince(claims) + 86400;
+			result = validSince(claims) + 86400;
 		}
 	}
-	return _validUntil;
+	return result;
 }
 
 function validSince(claims) {
-	let _validSince;
+	let result;
 	if (typeof claims === 'object') {
 		if (claims.hasOwnProperty('nbf')) {
-			_validSince = claims.nbf;
+			result = claims.nbf;
 		} else if (claims.hasOwnProperty('iat')) {
-			_validSince = claims.iat;
+			result = claims.iat;
 		}
 	}
-	return _validSince;
+	return result;
 }
-
-module.exports = Generator;
-module.exports.normalize = normalize;

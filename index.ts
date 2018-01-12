@@ -1,20 +1,22 @@
 /*
  * firebase-server 0.12.0
  * License: MIT.
- * Copyright (C) 2013, 2014, 2015, 2016, 2017, Uri Shaked and contributors.
+ * Copyright (C) 2013, 2014, 2015, 2016, 2017, 2018 Uri Shaked and contributors.
  */
 
-'use strict';
+import * as debug from 'debug';
+import * as firebase from 'firebase';
 
+import { getFirebaseHash } from './lib/firebase-hash';
+import { HttpServer } from './lib/http-server';
+import { normalize, TokenValidator } from './lib/token-validator';
+
+// tslint:disable:no-var-requires
 const _ = require('lodash');
 const WebSocketServer = require('ws').Server;
-const firebaseHash = require('./lib/firebase-hash');
 const TestableClock = require('./lib/testable-clock');
-const TokenValidator = require('./lib/token-validator');
-const firebase = require('firebase');
 const targaryen = require('targaryen');
-const _log = require('debug')('firebase-server');
-const HttpServer = require('./lib/http-server');
+const log = debug('firebase-server');
 
 // In order to produce new Firebase clients that do not conflict with existing
 // instances of the Firebase client, each one must have a unique name.
@@ -23,15 +25,15 @@ const HttpServer = require('./lib/http-server');
 let serverID = 0;
 
 function getSnap(ref) {
-	return new Promise(resolve => {
-		ref.once('value', snap => {
+	return new Promise((resolve) => {
+		ref.once('value', (snap) => {
 			resolve(snap);
 		});
 	});
 }
 
 function exportData(ref) {
-	return getSnap(ref).then(snap => snap.exportVal());
+	return getSnap(ref).then((snap: firebase.database.DataSnapshot) => snap.exportVal());
 }
 
 function normalizePath(fullPath) {
@@ -46,9 +48,9 @@ function normalizePath(fullPath) {
 		path = path.substr(1);
 	}
 	return {
+		fullPath,
 		isPriorityPath,
 		path,
-		fullPath
 	};
 }
 
@@ -70,7 +72,7 @@ function FirebaseServer(portOrOptions, name, data) {
 	// We must pass a "valid looking" configuration to initializeApp for its
 	// internal checks to pass.
 	const config = {
-		databaseURL: 'ws://fakeserver.firebaseio.test'
+		databaseURL: 'ws://fakeserver.firebaseio.test',
 	};
 	this.app = firebase.initializeApp(config, appName);
 	this.app.database().goOffline();
@@ -82,15 +84,16 @@ function FirebaseServer(portOrOptions, name, data) {
 	this._targaryen = targaryen.database({
 		rules: {
 			'.read': true,
-			'.write': true
-		}
+			'.write': true,
+		},
 	}, data);
 
-	let options, port;
+	let options;
+	let port;
 	if (typeof portOrOptions === 'object') {
 		options = portOrOptions;
 		if (options.server) {
-			var address = options.server.address();
+			const address = options.server.address();
 			if (address) {
 				port = address.port;
 			} else if (options.port) {
@@ -109,7 +112,7 @@ function FirebaseServer(portOrOptions, name, data) {
 	if (options.server && options.rest) {
 		throw new Error('Incompatible options: server, rest');
 	} else if (options.rest) {
-		this._https = new HttpServer(port, options.address, this.app.database());
+		this._https = HttpServer(port, options.address, this.app.database());
 		options = {server: this._https};
 	}
 
@@ -120,25 +123,25 @@ function FirebaseServer(portOrOptions, name, data) {
 	this._wss = new WebSocketServer(options);
 
 	this._clock = new TestableClock();
-	this._tokenValidator = new TokenValidator(null, this._clock);
+	this._tokenValidator = TokenValidator(null, this._clock);
 
 	this._wss.on('connection', this.handleConnection.bind(this));
-	_log(`Listening for connections on port ${port}`);
+	log(`Listening for connections on port ${port}`);
 }
 
 FirebaseServer.prototype = {
 	handleConnection(ws) {
-		_log(`New connection from ${ws._socket.remoteAddress}:${ws._socket.remotePort}`);
+		log(`New connection from ${ws._socket.remoteAddress}:${ws._socket.remotePort}`);
 		const server = this;
 		let authToken = null;
 
 		function send(message) {
 			const payload = JSON.stringify(message);
-			_log(`Sending message: ${payload}`);
+			log(`Sending message: ${payload}`);
 			try {
 				ws.send(payload);
 			} catch (e) {
-				_log(`Send failed: ${e}`);
+				log(`Send failed: ${e}`);
 			}
 		}
 
@@ -153,9 +156,9 @@ FirebaseServer.prototype = {
 						data = {
 							// 'user_id' is firebase-specific and may be
 							// convenience only; 'sub' is standard JWT.
-							uid: decodedToken.user_id || decodedToken.sub,
 							provider: decodedToken.provider_id,
 							token: decodedToken,
+							uid: decodedToken.user_id || decodedToken.sub,
 						};
 					}
 				} catch (e) {
@@ -211,17 +214,17 @@ FirebaseServer.prototype = {
 
 		function handleListen(requestId, normalizedPath, fbRef) {
 			const path = normalizedPath.path;
-			_log(`Client listen ${path}`);
+			log(`Client listen ${path}`);
 
 			try {
 				tryRead(requestId, path);
 			} catch (e) {
-				_log(e);
+				log(e);
 				return;
 			}
 
 			let sendOk = true;
-			fbRef.on('value', snap => {
+			fbRef.on('value', (snap) => {
 				// BUG: tryRead() here, and if it throws, cancel the listener.
 				// See https://github.com/urish/firebase-server/pull/100#issuecomment-323509408
 				pushData(path, snap.exportVal());
@@ -234,15 +237,15 @@ FirebaseServer.prototype = {
 
 		function handleUpdate(requestId, normalizedPath, fbRef, newData) {
 			const path = normalizedPath.path;
-			_log(`Client update ${path}`);
+			log(`Client update ${path}`);
 
-			let now = server._clock();
+			const now = server._clock();
 			newData = replaceServerTimestamp(now, newData);
 
 			try {
 				tryPatch(requestId, path, newData, now);
 			} catch (e) {
-				_log(e);
+				log(e);
 				return;
 			}
 
@@ -251,22 +254,22 @@ FirebaseServer.prototype = {
 		}
 
 		function handleSet(requestId, normalizedPath, fbRef, newData, hash) {
-			_log(`Client set ${normalizedPath.fullPath}`);
+			log(`Client set ${normalizedPath.fullPath}`);
 
-			let progress = Promise.resolve(true);
+			let progress = Promise.resolve();
 			const path = normalizedPath.path;
 
-			let now = server._clock();
+			const now = server._clock();
 			newData = replaceServerTimestamp(now, newData);
 
 			if (normalizedPath.isPriorityPath) {
-				progress = exportData(fbRef).then(parentData => {
+				progress = exportData(fbRef).then((parentData) => {
 					if (_.isObject(parentData)) {
 						parentData['.priority'] = newData;
 					} else {
 						parentData = {
+							'.priority': newData,
 							'.value': parentData,
-							'.priority': newData
 						};
 					}
 					newData = parentData;
@@ -278,8 +281,8 @@ FirebaseServer.prototype = {
 			});
 
 			if (typeof hash !== 'undefined') {
-				progress = progress.then(() => getSnap(fbRef)).then(snap => {
-					const calculatedHash = firebaseHash(snap.exportVal());
+				progress = progress.then(() => getSnap(fbRef)).then((snap: firebase.database.DataSnapshot) => {
+					const calculatedHash = getFirebaseHash(snap.exportVal());
 					if (hash !== calculatedHash) {
 						pushData(path, snap.exportVal());
 						send({d: {r: requestId, b: {s: 'datastale', d: 'Transaction hash does not match'}}, t: 'd'});
@@ -290,29 +293,38 @@ FirebaseServer.prototype = {
 
 			progress.then(() => {
 				fbRef.set(newData);
-				fbRef.once('value', snap => {
+				fbRef.once('value', (snap) => {
 					send({d: {r: requestId, b: {s: 'ok', d: {}}}, t: 'd'});
 				});
-			}).catch(_log);
+			}).catch(log);
 		}
 
 		function handleAuth(requestId, credential) {
 			if (server._authSecret === credential) {
-				return send({t: 'd', d: {r: requestId, b: {s: 'ok', d: TokenValidator.normalize({ auth: null, admin: true, exp: null }) }}});
+				return send({
+					d: {
+						b: {
+							d: normalize({ auth: null, admin: true, exp: null }),
+							s: 'ok',
+						},
+						r: requestId,
+					},
+					t: 'd',
+				});
 			}
 
 			try {
 				const decoded = server._tokenValidator.decode(credential);
 				authToken = credential;
-				return send({t: 'd', d: {r: requestId, b: {s: 'ok', d: TokenValidator.normalize(decoded)}}});
+				return send({t: 'd', d: {r: requestId, b: {s: 'ok', d: normalize(decoded)}}});
 			} catch (e) {
 				return send({t: 'd', d: {r: requestId, b: {s: 'invalid_token', d: 'Could not parse auth token.'}}});
 			}
 		}
 
-		function accumulateFrames(data){
-			//Accumulate buffer until websocket frame is complete
-			if (typeof ws.frameBuffer == 'undefined'){
+		function accumulateFrames(data) {
+			// Accumulate buffer until websocket frame is complete
+			if (typeof ws.frameBuffer === 'undefined') {
 				ws.frameBuffer = '';
 			}
 
@@ -320,15 +332,15 @@ FirebaseServer.prototype = {
 				const parsed = JSON.parse(ws.frameBuffer + data);
 				ws.frameBuffer = '';
 				return parsed;
-			} catch(e) {
+			} catch (e) {
 				ws.frameBuffer += data;
 			}
 
 			return '';
 		}
 
-		ws.on('message', data => {
-			_log(`Client message: ${data}`);
+		ws.on('message', (data) => {
+			log(`Client message: ${data}`);
 			if (data === 0) {
 				return;
 			}
@@ -366,9 +378,10 @@ FirebaseServer.prototype = {
 	},
 
 	getData(ref) {
-		console.warn('FirebaseServer.getData() is deprecated! Please use FirebaseServer.getValue() instead'); // eslint-disable-line no-console
+		// tslint:disable-next-line:no-console
+		console.warn('FirebaseServer.getData() is deprecated! Please use FirebaseServer.getValue() instead');
 		let result = null;
-		this.baseRef.once('value', snap => {
+		this.baseRef.once('value', (snap) => {
 			result = snap.val();
 		});
 		return result;
@@ -379,7 +392,7 @@ FirebaseServer.prototype = {
 	},
 
 	getValue(ref) {
-		return this.getSnap(ref).then(snap => snap.val());
+		return this.getSnap(ref).then((snap) => snap.val());
 	},
 
 	exportData(ref) {
@@ -387,11 +400,9 @@ FirebaseServer.prototype = {
 	},
 
 	close(callback) {
-		let https= this._https, cb;
-		if (https) {
-			cb = function() {
-				https.close(callback);
-			};
+		let cb;
+		if (this._https) {
+			cb = () => this._https.close(callback);
 		} else {
 			cb = callback;
 		}
@@ -405,7 +416,7 @@ FirebaseServer.prototype = {
 	setAuthSecret(newSecret) {
 		this._authSecret = newSecret;
 		this._tokenValidator.setSecret(newSecret);
-	}
+	},
 };
 
-module.exports = FirebaseServer;
+export = FirebaseServer;

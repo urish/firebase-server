@@ -1,16 +1,14 @@
 /*
  * firebase-server - https://github.com/urish/firebase-server
  * License: MIT.
- * Copyright (C) 2013, 2014, 2015, Uri Shaked.
+ * Copyright (C) 2013-2018, Uri Shaked.
  */
 
-'use strict';
+import * as crypto from 'crypto';
 
-const crypto = require('crypto');
-
-function convertToIEEE754Hex(number) {
+function convertToIEEE754Hex(num) {
 	const buf = new Buffer(8);
-	buf.writeDoubleBE(number, 0);
+	buf.writeDoubleBE(num, 0);
 	return buf.toString('hex');
 }
 
@@ -22,7 +20,7 @@ function hashPriority(priority) {
 	}
 }
 
-function getFirebaseHash(value) {
+export function getFirebaseHash(value) {
 	let hash = '';
 	if (value === null) {
 		return '';
@@ -34,7 +32,7 @@ function getFirebaseHash(value) {
 		value = value['.value'];
 	}
 	if ((typeof value === 'object')) {
-		Object.keys(value).sort().forEach(key => {
+		Object.keys(value).sort().forEach((key) => {
 			if (key !== '.priority') {
 				hash += `:${key}:${getFirebaseHash(value[key])}`;
 			}
@@ -47,5 +45,3 @@ function getFirebaseHash(value) {
 	sha1.update(hash);
 	return sha1.digest('base64');
 }
-
-module.exports = getFirebaseHash;

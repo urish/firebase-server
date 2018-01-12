@@ -5,52 +5,52 @@
 'use strict';
 
 const assert = require('assert');
-const firebaseHash = require('../lib/firebase-hash');
+const { getFirebaseHash } = require('../lib/firebase-hash');
 
 /* global describe, it */
 
 describe('#firebaseHash', () => {
 	it('should return empty hash string for null values', () => {
-		assert.equal(firebaseHash(null), '');
+		assert.equal(getFirebaseHash(null), '');
 	});
 
 	it('should return correct hash for boolean true', () => {
-		assert.equal(firebaseHash(true), 'E5z61QM0lN/U2WsOnusszCTkR8M=');
+		assert.equal(getFirebaseHash(true), 'E5z61QM0lN/U2WsOnusszCTkR8M=');
 	});
 
 	it('should return correct hash for boolean false', () => {
-		assert.equal(firebaseHash(false), 'aSSNoqcS4oQwJ2xxH20rvpp3zP0=');
+		assert.equal(getFirebaseHash(false), 'aSSNoqcS4oQwJ2xxH20rvpp3zP0=');
 	});
 
 	it('should return correct hash for numeric values', () => {
-		assert.equal(firebaseHash(500), 'Ajg9bohDwTVmqR14o1bVJnneryM=');
+		assert.equal(getFirebaseHash(500), 'Ajg9bohDwTVmqR14o1bVJnneryM=');
 	});
 
 	it('should return correct hash for string values', () => {
-		assert.equal(firebaseHash('Hello World'), 'B8HWXc7zXMjrsnJxPRj7wrNGqt4=');
+		assert.equal(getFirebaseHash('Hello World'), 'B8HWXc7zXMjrsnJxPRj7wrNGqt4=');
 	});
 
 	it('should return correct hash for objects with a single key', () => {
-		assert.equal(firebaseHash({foo: 'bar'}), 'XnLeTeWQmzTHImTbSMDLg/qMrKY=');
+		assert.equal(getFirebaseHash({foo: 'bar'}), 'XnLeTeWQmzTHImTbSMDLg/qMrKY=');
 	});
 
 	it('should return correct hash for objects with a multiple keys', () => {
-		assert.equal(firebaseHash({z: 1, a: '2', b: 'true', c: false}), '8qk5vmuZGXWJx+77SGwjYRM0yPA=');
+		assert.equal(getFirebaseHash({z: 1, a: '2', b: 'true', c: false}), '8qk5vmuZGXWJx+77SGwjYRM0yPA=');
 	});
 
 	it('should return correct hash for primitive value with a numeric priority', () => {
-		assert.equal(firebaseHash({'.priority': 200, '.value': 'primitive'}), 'R9u8hs9fhRzuQ2M/3BQ0uhxz5ys=');
+		assert.equal(getFirebaseHash({'.priority': 200, '.value': 'primitive'}), 'R9u8hs9fhRzuQ2M/3BQ0uhxz5ys=');
 	});
 
 	it('should return correct hash for primitive value a string priority', () => {
-		assert.equal(firebaseHash({'.priority': 'high', '.value': 42}), 'd/2FMFWchvDsa06RLXZhzvM9aQc=');
+		assert.equal(getFirebaseHash({'.priority': 'high', '.value': 42}), 'd/2FMFWchvDsa06RLXZhzvM9aQc=');
 	});
 
 	it('should return correct hash for objects with a numeric priority', () => {
-		assert.equal(firebaseHash({'.priority': 128.256, someKey: 'value'}), 'WYR8kBGna+a7E5x75zvhPhzACOQ=');
+		assert.equal(getFirebaseHash({'.priority': 128.256, someKey: 'value'}), 'WYR8kBGna+a7E5x75zvhPhzACOQ=');
 	});
 
 	it('should return correct hash for objects with a string priority', () => {
-		assert.equal(firebaseHash({'.priority': 'high', someKey: 'value'}), '/KquMIGoCuKO/ipoLoQzqnU0BcI=');
+		assert.equal(getFirebaseHash({'.priority': 'high', someKey: 'value'}), '/KquMIGoCuKO/ipoLoQzqnU0BcI=');
 	});
 });

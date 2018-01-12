@@ -1,10 +1,10 @@
-'use strict';
+import * as debug from 'debug';
+import * as http from 'http';
+import * as url from 'url';
 
-const _log = require('debug')('firebase-server');
-const http = require('http');
-const url = require('url');
+const log = debug('firebase-server');
 
-function HttpServer(port, address, db) {
+export function HttpServer(port, address, db) {
 	function read(path, cb) {
 		db.ref(path).once('value').then(cb);
 	}
@@ -16,14 +16,14 @@ function HttpServer(port, address, db) {
 	}
 
 	function handleReadRequest(request, response, path) {
-		read(path, snapshot => {
+		read(path, (snapshot) => {
 			writeResponse(response, snapshot.val() || {});
 		});
 	}
 
 	function handleWriteRequest(request, response, path, writeMethod) {
 		let body = '';
-		request.on('data', data => {
+		request.on('data', (data) => {
 			body += data;
 			if (body.length > 1e6) {
 				request.connection.destroy();
@@ -33,7 +33,7 @@ function HttpServer(port, address, db) {
 			const payload = JSON.parse(body);
 			db.ref(path)[writeMethod](payload);
 			if (writeMethod === 'update') {
-				read(path, snapshot => { writeResponse(response, snapshot.val()); });
+				read(path, (snapshot) => { writeResponse(response, snapshot.val()); });
 			} else {
 				writeResponse(response, payload);
 			}
@@ -46,21 +46,21 @@ function HttpServer(port, address, db) {
 	}
 
 	const server = http.createServer((request, response) => {
-		const urlParts = url.parse(request.url);
+		const urlParts = url.parse(request.url!);
 		let path = urlParts.pathname;
-		if (!path.match(/\.json$/)) {
+		if (!path || !path.match(/\.json$/)) {
 			response.writeHead(404);
 			response.end();
 			return;
 		}
 		path = path.replace(/\.json$/, '');
-		_log(`${request.method} ${path}`);
+		log(`${request.method} ${path}`);
 		switch (request.method) {
 			case 'GET':
 				handleReadRequest(request, response, path);
 				break;
 			case 'PUT':
-				handleWriteRequest(request,response, path, 'set');
+				handleWriteRequest(request, response, path, 'set');
 				break;
 			case 'PATCH':
 				handleWriteRequest(request, response, path, 'update');
@@ -77,5 +77,3 @@ function HttpServer(port, address, db) {
 	server.listen(port, address);
 	return server;
 }
-
-module.exports = HttpServer;

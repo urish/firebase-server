@@ -2,14 +2,15 @@
   "name": "firebase-server",
   "version": "0.12.0",
   "description": "Simple Firebase Server",
-  "main": "index.js",
+  "main": "dist/index.js",
   "bin": "./bin/firebase-server.js",
   "scripts": {
+    "build": "rimraf dist && tsc",
     "test": "npm run lint && npm run cover",
-    "cover": "istanbul cover ./node_modules/mocha/bin/_mocha",
+    "cover": "nyc mocha",
     "debug": "mocha",
     "watch": "mocha -w",
-    "lint": "eslint index.js lib test bin"
+    "lint": "tslint -p ."
   },
   "repository": {
     "type": "git",
@@ -26,27 +27,32 @@
   },
   "homepage": "https://github.com/urish/firebase-server",
   "files": [
-    "index.js",
-    "lib/*.js",
-    "bin/firebase-server.js",
-    "CHANGELOG.md"
+    "dist",
+    "bin/firebase-server.js"
   ],
   "devDependencies": {
+    "@types/debug": "0.0.30",
+    "@types/jwt-simple": "^0.5.33",
     "bluebird": "2.10.2",
     "co": "4.6.0",
     "coveralls": "2.11.4",
-    "eslint": "4.11.0",
     "faye-websocket": "0.10.0",
     "firebase-token-generator": "^2.0.0",
-    "istanbul": "0.4.0",
     "mocha": "2.3.3",
-    "proxyquire": "^1.7.3"
+    "nyc": "^11.4.1",
+    "proxyquire": "^1.7.3",
+    "rimraf": "^2.6.2",
+    "source-map-support": "^0.5.0",
+    "ts-node": "^4.1.0",
+    "tslint": "^5.9.1",
+    "typescript": "^2.6.2"
   },
   "dependencies": {
+    "@types/node": "^9.3.0",
     "cli": "0.11.3",
     "daemon": "^1.1.0",
     "debug": "2.2.0",
-    "firebase": "3.6.1",
+    "firebase": "^3.7.0",
     "jwt-simple": "0.3.1",
     "lodash": "3.10.1",
     "node-fetch": "^1.7.3",
@@ -54,6 +60,6 @@
     "ws": "1.1.1"
   },
   "engines": {
-    "node": ">=6.0.0"
+    "node": ">=6.4.0"
   }
 }
