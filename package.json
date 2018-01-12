@@ -36,7 +36,7 @@
     "@types/jwt-simple": "^0.5.33",
     "@types/mocha": "^2.2.46",
     "bluebird": "2.10.2",
-    "coveralls": "2.11.4",
+    "coveralls": "3.0.0",
     "faye-websocket": "0.10.0",
     "firebase-token-generator": "^2.0.0",
     "mocha": "2.3.3",
@@ -62,5 +62,21 @@
   },
   "engines": {
     "node": ">=6.4.0"
+  },
+  "nyc": {
+    "extension": [
+      ".js",
+      ".ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ],
+    "reporter": [
+      "text-summary",
+      "lcov",
+      "html"
+    ],
+    "sourceMap": true,
+    "instrument": true
   }
 }
