@@ -5,6 +5,7 @@
  */
 
 import * as debug from 'debug';
+import { EventEmitter } from 'events';
 import * as firebase from 'firebase';
 
 import { getFirebaseHash } from './lib/firebase-hash';
@@ -54,7 +55,7 @@ function normalizePath(fullPath) {
 	};
 }
 
-class FirebaseServer {
+class FirebaseServer extends EventEmitter {
 	private app;
 	private baseRef;
 	private authSecret;
@@ -65,6 +66,8 @@ class FirebaseServer {
 	private tokenValidator;
 
 	constructor(portOrOptions, private name = 'mock.firebase.server', data = null) {
+		super();
+
 		// Firebase is more than just a "database" now; the "realtime database" is
 		// just one of many services provided by a Firebase "App" container.
 		// The Firebase library must be initialized with an App, and that app
@@ -133,6 +136,7 @@ class FirebaseServer {
 		this.clock = new TestableClock();
 		this.tokenValidator = TokenValidator(null, this.clock);
 
+		this.wss.on('listening', () => this.emit('listening'));
 		this.wss.on('connection', this.handleConnection.bind(this));
 		log(`Listening for connections on port ${port}`);
 	}
@@ -394,6 +398,15 @@ class FirebaseServer {
 		return result;
 	}
 
+	public getAddress() {
+		return this.wss._server.address();
+	}
+
+	public getPort() {
+		const address = this.wss._server.address();
+		return address ? address.port : null;
+	}
+
 	public getSnap(ref) {
 		return getSnap(ref || this.baseRef);
 	}
@@ -406,14 +419,10 @@ class FirebaseServer {
 		return exportData(ref || this.baseRef);
 	}
 
-	public close(callback) {
-		let cb;
-		if (this.https) {
-			cb = () => this.https.close(callback);
-		} else {
-			cb = callback;
-		}
-		this.wss.close(cb);
+	public close(callback?) {
+		return new Promise((resolve) => {
+			this.wss.close(this.https ? () => this.https.close(resolve) : resolve);
+		}).then(callback || (() => 0));
 	}
 
 	public setTime(newTime) {

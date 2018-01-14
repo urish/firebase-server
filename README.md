@@ -108,6 +108,8 @@ FirebaseServer instances have the following API:
 
 * `close(callback)` - Stops the server (closes the server socket) and then calls the callback
 * `getValue()` - Returns a promise that will be resolved with the current data on the server
+* `getAddress()` - Returns the address the server is currently listening on
+* `getPort()` - Returns the port the server is currently listening on
 * `exportData()` - Returns a promise that will be resolved with the current data on the server, including priority values.
 	This is similar to [DataSnapshot.exportVal()](https://www.firebase.com/docs/web/api/datasnapshot/exportval.html).
 * `setRules(rules)` - Sets the security rules for the server. Uses the [targaryen](https://github.com/goldibex/targaryen)

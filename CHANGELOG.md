@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.13.0 - TBD
+- Add `getAddress()`, `getPort()` method
+
 ## 0.12.0 - 2017-11-16
 - REST API support ([#95](https://github.com/urish/firebase-server/pull/95), contributed by [p-salido](https://github.com/p-salido))
 - Daemonization option ([#111](https://github.com/urish/firebase-server/pull/111), contributed by [p-salido](https://github.com/p-salido))
