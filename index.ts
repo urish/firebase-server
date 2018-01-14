@@ -6,6 +6,7 @@
 
 import * as debug from 'debug';
 import * as firebase from 'firebase';
+import * as _ from 'lodash';
 import * as WebSocket from 'ws';
 import { Server as WebSocketServer } from 'ws';
 
@@ -14,7 +15,6 @@ import { HttpServer } from './lib/http-server';
 import { normalize, TokenValidator } from './lib/token-validator';
 
 // tslint:disable:no-var-requires
-const _ = require('lodash');
 const targaryen = require('targaryen');
 const log = debug('firebase-server');
 
@@ -206,7 +206,7 @@ class FirebaseServer {
 			}
 		}
 
-		function tryPatch(requestId: number, path: string, newData: object, now: number) {
+		function tryPatch(requestId: number, path: string, newData: object|string|number, now: number) {
 			const result = server.targaryen.as(authData()).update(path, newData, now);
 			if (!result.allowed) {
 				permissionDenied(requestId);
@@ -215,7 +215,7 @@ class FirebaseServer {
 			server.targaryen = result.newDatabase;
 		}
 
-		function tryWrite(requestId: number, path: string, newData: object|number, now: number) {
+		function tryWrite(requestId: number, path: string, newData: object|string|number, now: number) {
 			const result = server.targaryen.as(authData()).write(path, newData, now);
 			if (!result.allowed) {
 				permissionDenied(requestId);
@@ -253,7 +253,7 @@ class FirebaseServer {
 			requestId: number,
 			normalizedPath: INormalizedPath,
 			fbRef: firebase.database.Reference,
-			newData: object,
+			newData: object|string|number,
 		) {
 			const path = normalizedPath.path;
 			log(`Client update ${path}`);
@@ -276,7 +276,7 @@ class FirebaseServer {
 			requestId: number,
 			normalizedPath: INormalizedPath,
 			fbRef: firebase.database.Reference,
-			newData: object,
+			newData: object|string|number,
 			hash?: string,
 		) {
 			log(`Client set ${normalizedPath.fullPath}`);

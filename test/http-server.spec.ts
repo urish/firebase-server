@@ -1,13 +1,11 @@
-'use strict';
+import * as assert from 'assert';
+import fetch from 'node-fetch';
+import * as proxyquire from 'proxyquire';
 
-/* global beforeEach, afterEach, describe, it */
+// tslint:disable-next-line:no-var-requires
+const originalWebsocket = require('faye-websocket');
 
 const PORT = 44000;
-
-const originalWebsocket = require('faye-websocket');
-const assert = require('assert');
-const proxyquire = require('proxyquire');
-const fetch = require('node-fetch');
 
 // this is the auth token that will be sent to the server during tests.
 // it is initialized in `beforeEach()`.
@@ -18,38 +16,39 @@ let authToken = null;
 // faye-websocket's Client constructor.
 const firebase = proxyquire('firebase', {
 	'faye-websocket': {
-		Client: function (url) {
+		'@global': true,
+		// tslint:disable-next-line
+		'Client': function (url) {
 			url = url.replace(/dummy\d+\.firebaseio\.test/i, 'localhost');
 			return new originalWebsocket.Client(url);
 		},
-		'@global': true
-	}
+	},
 });
 
 // Override Firebase client authentication mechanism. This allows us to set
 // custom auth tokens during tests, as well as authenticate anonymously.
-firebase.INTERNAL.factories.auth = function (app, extendApp) {
-	const _listeners = [];
+firebase.INTERNAL.factories.auth = (app, extendApp) => {
+	const listeners = [];
 	const token = authToken;
 	extendApp({
-		'INTERNAL': {
-			'getToken': function () {
+		INTERNAL: {
+			getToken() {
 				if (!token) {
 					return Promise.resolve(null);
 				}
-				_listeners.forEach(listener => {
+				listeners.forEach((listener) => {
 					listener(token);
 				});
 				return Promise.resolve({ accessToken: token, expirationTime: 1566618502074 });
 			},
-			'addAuthTokenListener': function (listener) {
-				_listeners.push(listener);
-			}
-		}
+			addAuthTokenListener(listener: () => void) {
+				listeners.push(listener);
+			},
+		},
 	});
 };
 
-const FirebaseServer = require('../index');
+import FirebaseServer = require('../index');
 
 describe('Firebase HTTP Server', () => {
 	let server;
@@ -80,7 +79,7 @@ describe('Firebase HTTP Server', () => {
 		const name = `test-firebase-client-${sequentialConnectionId}`;
 		const url = `ws://dummy${sequentialConnectionId++}.firebaseio.test:${port}`;
 		const config = {
-			databaseURL: url
+			databaseURL: url,
 		};
 		app = firebase.initializeApp(config, name);
 		return app.database().ref();
@@ -92,8 +91,8 @@ describe('Firebase HTTP Server', () => {
 				it('returns empty hash', () => {
 					const port = newFirebaseServer({});
 					return fetch(`http://localhost:${port}/.json`)
-						.then(resp => resp.json())
-						.then(payload => {
+						.then((resp) => resp.json())
+						.then((payload) => {
 							assert.deepEqual(payload, {});
 						});
 				});
@@ -102,8 +101,8 @@ describe('Firebase HTTP Server', () => {
 				it('returns the data', () => {
 					const port = newFirebaseServer({ a: 'b' });
 					return fetch(`http://localhost:${port}/.json`)
-						.then(resp => resp.json())
-						.then(payload => {
+						.then((resp) => resp.json())
+						.then((payload) => {
 							assert.deepEqual(payload, { a: 'b' });
 						});
 				});
@@ -112,8 +111,8 @@ describe('Firebase HTTP Server', () => {
 				it('returns the data', () => {
 					const port = newFirebaseServer({ a: { c: 'b' } });
 					return fetch(`http://localhost:${port}/.json`)
-						.then(resp => resp.json())
-						.then(payload => {
+						.then((resp) => resp.json())
+						.then((payload) => {
 							assert.deepEqual(payload, { a: { c: 'b' } });
 						});
 				});
@@ -127,8 +126,8 @@ describe('Firebase HTTP Server', () => {
 				const port = newFirebaseServer({});
 				const client = newFirebaseClient(port);
 				return fetch(`http://localhost:${port}/.json`, { method: 'PUT', body: JSON.stringify({ a: 'b' }) })
-					.then(resp => client.once('value'))
-					.then(snap => {
+					.then((resp) => client.once('value'))
+					.then((snap) => {
 						assert.deepEqual(snap.val(), { a: 'b' });
 					});
 			});
@@ -136,8 +135,8 @@ describe('Firebase HTTP Server', () => {
 				const port = newFirebaseServer({ d: 'e' });
 				const client = newFirebaseClient(port);
 				return fetch(`http://localhost:${port}/.json`, { method: 'PUT', body: JSON.stringify({ a: 'b' }) })
-					.then(resp => client.once('value'))
-					.then(snap => {
+					.then((resp) => client.once('value'))
+					.then((snap) => {
 						assert.deepEqual(snap.val(), { a: 'b' });
 					});
 			});
@@ -147,8 +146,8 @@ describe('Firebase HTTP Server', () => {
 				const port = newFirebaseServer({});
 				const client = newFirebaseClient(port);
 				return fetch(`http://localhost:${port}/test.json`, { method: 'PUT', body: JSON.stringify({ a: 'b' }) })
-					.then(resp => client.once('value'))
-					.then(snap => {
+					.then((resp) => client.once('value'))
+					.then((snap) => {
 						assert.deepEqual(snap.val(), { test: { a: 'b' } });
 					});
 			});
@@ -161,8 +160,8 @@ describe('Firebase HTTP Server', () => {
 				const port = newFirebaseServer({});
 				const client = newFirebaseClient(port);
 				return fetch(`http://localhost:${port}/.json`, { method: 'PATCH', body: JSON.stringify({ a: 'b' }) })
-					.then(resp => client.once('value'))
-					.then(snap => {
+					.then((resp) => client.once('value'))
+					.then((snap) => {
 						assert.deepEqual(snap.val(), { a: 'b' });
 					});
 			});
@@ -170,8 +169,8 @@ describe('Firebase HTTP Server', () => {
 				const port = newFirebaseServer({ d: 'e' });
 				const client = newFirebaseClient(port);
 				return fetch(`http://localhost:${port}/.json`, { method: 'PATCH', body: JSON.stringify({ a: 'b' }) })
-					.then(resp => client.once('value'))
-					.then(snap => {
+					.then((resp) => client.once('value'))
+					.then((snap) => {
 						assert.deepEqual(snap.val(), { a: 'b', d: 'e' });
 					});
 			});
@@ -181,8 +180,8 @@ describe('Firebase HTTP Server', () => {
 				const port = newFirebaseServer({});
 				const client = newFirebaseClient(port);
 				return fetch(`http://localhost:${port}/test.json`, { method: 'PATCH', body: JSON.stringify({ a: 'b' }) })
-					.then(resp => client.once('value'))
-					.then(snap => {
+					.then((resp) => client.once('value'))
+					.then((snap) => {
 						assert.deepEqual(snap.val(), { test: { a: 'b' } });
 					});
 			});
@@ -195,8 +194,8 @@ describe('Firebase HTTP Server', () => {
 				const port = newFirebaseServer({ a: 'b' });
 				const client = newFirebaseClient(port);
 				return fetch(`http://localhost:${port}/.json`, { method: 'DELETE' })
-					.then(resp => client.once('value'))
-					.then(snap => {
+					.then((resp) => client.once('value'))
+					.then((snap) => {
 						assert.deepEqual(snap.val(), null);
 					});
 			});
@@ -206,8 +205,8 @@ describe('Firebase HTTP Server', () => {
 				const port = newFirebaseServer({ a: { c: 'b', k: 'l' }, m: 'p' });
 				const client = newFirebaseClient(port);
 				return fetch(`http://localhost:${port}/a/c.json`, { method: 'DELETE' })
-					.then(resp => client.once('value'))
-					.then(snap => {
+					.then((resp) => client.once('value'))
+					.then((snap) => {
 						assert.deepEqual(snap.val(), { a: { k: 'l' }, m: 'p' });
 					});
 			});

@@ -5,15 +5,15 @@
 import * as assert from 'assert';
 import TokenGenerator = require('firebase-token-generator');
 import * as http from 'http';
+import * as _ from 'lodash';
+import * as proxyquire from 'proxyquire';
 
 import FirebaseServer = require('../index');
 
 const PORT = 46000;
 
-// tslint:disable:no-var-requires
+// tslint:disable-next-line:no-var-requires
 const originalWebsocket = require('faye-websocket');
-const proxyquire = require('proxyquire');
-const _ = require('lodash');
 
 // this is the auth token that will be sent to the server during tests.
 // it is initialized in `beforeEach()`.

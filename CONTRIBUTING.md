@@ -72,7 +72,7 @@ You can also just call `mocha -w` from the command line, if you installed mocha 
     ````
   - Use one branch per fix/feature
 - Make your changes
-  - Make sure to provide a spec for unit tests (in `test/server.spec.js` or similar). 
+  - Make sure to provide a spec for unit tests (in `test/server.spec.ts` or similar). 
     You should strive for 100% coverage of any code you add (this is not a strict requirement).
   - Run your tests with `npm test`
   - When all tests pass, everything is fine
