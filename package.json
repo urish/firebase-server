@@ -35,6 +35,7 @@
     "@types/firebase-token-generator": "^2.0.28",
     "@types/jwt-simple": "^0.5.33",
     "@types/mocha": "^2.2.46",
+    "@types/ws": "^4.0.0",
     "bluebird": "2.10.2",
     "coveralls": "3.0.0",
     "faye-websocket": "0.10.0",
@@ -58,7 +59,7 @@
     "lodash": "3.10.1",
     "node-fetch": "^1.7.3",
     "targaryen": "3.0.1",
-    "ws": "1.1.1"
+    "ws": "^4.0.0"
   },
   "engines": {
     "node": ">=6.4.0"
