@@ -49,7 +49,7 @@ firebase.INTERNAL.factories.auth = (app, extendApp) => {
 				});
 				return Promise.resolve({ accessToken: token, expirationTime: 1566618502074 });
 			},
-			addAuthTokenListener(listener) {
+			addAuthTokenListener(listener: () => void) {
 				listeners.push(listener);
 			},
 		},
@@ -82,12 +82,12 @@ describe('Firebase Server', () => {
 		} while (app);
 	});
 
-	function newFirebaseServer(data?) {
+	function newFirebaseServer(data?: object) {
 		server = new FirebaseServer(sequentialPort, `localhost:${sequentialPort}`, data);
 		return sequentialPort++;
 	}
 
-	function newFirebaseClient(port) {
+	function newFirebaseClient(port: number) {
 		const name = `test-firebase-client-${sequentialConnectionId}`;
 		const url = `ws://dummy${sequentialConnectionId++}.firebaseio.test:${port}`;
 		const config = {
@@ -268,7 +268,7 @@ describe('Firebase Server', () => {
 					}
 				});
 			}
-			function onValue(snap) {
+			function onValue(snap: firebase.database.DataSnapshot) {
 				if (snap.val()) {
 					assert.ok(++removeGates <= 2);
 					if (removeGates === 2) {

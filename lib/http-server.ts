@@ -4,24 +4,25 @@ import * as url from 'url';
 
 const log = debug('firebase-server');
 
-export function HttpServer(port, address, db) {
-	function read(path, cb) {
-		db.ref(path).once('value').then(cb);
-	}
-
-	function writeResponse(response, payload) {
-		response.writeHead(200, {'Content-Type': 'application/json'});
+export function HttpServer(port: number, address: undefined, db: firebase.database.Database) {
+	function writeResponse(response: http.ServerResponse, payload: object | null) {
+		response.writeHead(200, { 'Content-Type': 'application/json' });
 		response.write(JSON.stringify(payload));
 		response.end();
 	}
 
-	function handleReadRequest(request, response, path) {
-		read(path, (snapshot) => {
+	function handleReadRequest(request: http.IncomingMessage, response: http.ServerResponse, path: string) {
+		db.ref(path).once('value').then((snapshot) => {
 			writeResponse(response, snapshot.val() || {});
 		});
 	}
 
-	function handleWriteRequest(request, response, path, writeMethod) {
+	function handleWriteRequest(
+		request: http.IncomingMessage,
+		response: http.ServerResponse,
+		path: string,
+		writeMethod: string,
+	) {
 		let body = '';
 		request.on('data', (data) => {
 			body += data;
@@ -33,14 +34,14 @@ export function HttpServer(port, address, db) {
 			const payload = JSON.parse(body);
 			db.ref(path)[writeMethod](payload);
 			if (writeMethod === 'update') {
-				read(path, (snapshot) => { writeResponse(response, snapshot.val()); });
+				db.ref(path).once('value').then((snapshot) => writeResponse(response, snapshot.val()));
 			} else {
 				writeResponse(response, payload);
 			}
 		});
 	}
 
-	function handleDeleteRequest(request, response, path) {
+	function handleDeleteRequest(request: http.IncomingMessage, response: http.ServerResponse, path: string) {
 		db.ref(path).remove();
 		writeResponse(response, null);
 	}

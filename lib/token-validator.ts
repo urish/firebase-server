@@ -6,37 +6,39 @@
 import * as debug from 'debug';
 import * as jwt from 'jwt-simple';
 
-// tslint:disable-next-line:no-var-requires
-const TestableClock = require('./testable-clock');
-const low = debug('firebase-server:token-validator');
+const log = debug('firebase-server:token-validator');
 
-export function TokenValidator(secret, time?) {
-	if (!time && typeof secret !== 'string') {
-		time = secret;
-		secret = null;
-	}
+interface IClaims {
+	v?: number;
+	d?: {
+		uid?: string;
+		[key: string]: any;
+	};
+	nbf?: number;
+	exp?: number;
+	iat?: number;
+	admin?: boolean;
+	simulate?: boolean;
+	debug?: boolean;
+}
+
+export function TokenValidator(secret?: string|null) {
 	setSecret(secret);
 
-	const clock = new TestableClock(time);
-
 	function getTime() {
-		return Math.floor(clock() / 1000);
+		return Math.floor(new Date().getTime() / 1000);
 	}
 
-	function withTime(newClock) {
-		return TokenValidator(secret, newClock);
-	}
-
-	function decode(token, noVerify?) {
-		const decoded = jwt.decode(token, secret, !secret || noVerify);
-		if (!noVerify && !isValidTimestamp(decoded)) {
+	function decode(token: string, noVerify = false) {
+		const decoded = jwt.decode(token, secret || '', !secret || noVerify);
+		if (secret && !noVerify && !isValidTimestamp(decoded)) {
 			throw new Error('invalid timestamp');
 		}
-		low('decode(token: %j, secret: %j) => %j', token, secret, decoded);
+		log('decode(token: %j, secret: %j) => %j', token, secret, decoded);
 		return decoded;
 	}
 
-	function isValidTimestamp(claims, now = getTime()) {
+	function isValidTimestamp(claims: object, now = getTime()) {
 		const since = validSince(claims);
 		const until = validUntil(claims);
 		return typeof now === 'number' &&
@@ -46,12 +48,12 @@ export function TokenValidator(secret, time?) {
 			now <= until;
 	}
 
-	function setSecret(newSecret) {
+	function setSecret(newSecret?: null|string) {
 		secret = newSecret || null;
 	}
 
 	function withSecret(newSecret) {
-		return TokenValidator(newSecret, time);
+		return TokenValidator(newSecret);
 	}
 
 	return {
@@ -59,16 +61,14 @@ export function TokenValidator(secret, time?) {
 		isValidTimestamp,
 		normalize,
 		setSecret,
-		setTime: clock.setTime,
 		withSecret,
-		withTime,
 	};
 }
 
-export function normalize(input) {
+export function normalize(input: object) {
 	const normal = {};
 
-	function grab(a, b = a) {
+	function grab(a: string, b = a) {
 		if (input.hasOwnProperty(a)) {
 			normal[b] = input[a];
 		} else if (input.hasOwnProperty(b)) {
@@ -88,24 +88,27 @@ export function normalize(input) {
 	return normal;
 }
 
-function validUntil(claims) {
-	let result;
+function validUntil(claims: IClaims) {
+	let result: number | null = null;
 	if (typeof claims === 'object') {
-		if (claims.hasOwnProperty('exp')) {
+		if (claims.exp) {
 			result = claims.exp;
 		} else {
-			result = validSince(claims) + 86400;
+			result = validSince(claims);
+			if (result) {
+				result += 86400;
+			}
 		}
 	}
 	return result;
 }
 
-function validSince(claims) {
-	let result;
+function validSince(claims: IClaims) {
+	let result: number | null = null;
 	if (typeof claims === 'object') {
-		if (claims.hasOwnProperty('nbf')) {
+		if (claims.nbf) {
 			result = claims.nbf;
-		} else if (claims.hasOwnProperty('iat')) {
+		} else if (claims.iat) {
 			result = claims.iat;
 		}
 	}
