@@ -223,6 +223,19 @@ describe('Firebase Server', () => {
 			});
 		});
 
+		it('should split long messages correctly according to the maxFrameLength parameter', async () => {
+			const options = { port: sequentialPort, maxFrameLength: 10 };
+			const server = new FirebaseServer(options, `localhost:${sequentialPort}`);
+			const client = newFirebaseClient(sequentialPort);
+			sequentialPort++;
+			await client.set({
+				foo: _.times(2000, String),
+			});
+			assert.deepEqual((await server.getValue()), {
+				foo: _.times(2000, String),
+			});
+		});
+
 		it('should support `firebase.database.ServerValue.TIMESTAMP` values', async () => {
 			const port = newFirebaseServer();
 			server.setTime(50001000102);
