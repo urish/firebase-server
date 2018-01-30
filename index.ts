@@ -69,6 +69,7 @@ class FirebaseServer {
 	private wss: WebSocketServer;
 	private clock: number | null = null;
 	private tokenValidator;
+	private maxFrameLength;
 
 	constructor(portOrOptions, private name = 'mock.firebase.server', data = null) {
 		// Firebase is more than just a "database" now; the "realtime database" is
@@ -134,6 +135,14 @@ class FirebaseServer {
 			options = Object.assign({}, options, { host: options.address });
 		}
 
+		if (options.maxFrameLength) {
+			this.maxFrameLength = options.maxFrameLength;
+		} else {
+			// The default maximum incoming frame length in the Java client
+			// is 16384; the maximum possible is 65536.
+			this.maxFrameLength = 16384;
+		}
+
 		this.wss = new WebSocketServer(options);
 
 		this.tokenValidator = TokenValidator(null);
@@ -151,7 +160,11 @@ class FirebaseServer {
 			const payload = JSON.stringify(message);
 			log(`Sending message: ${payload}`);
 			try {
-				ws.send(payload);
+				const numFragments = Math.ceil(payload.length / server.maxFrameLength);
+				ws.send(String(numFragments));
+				for (let startIdx = 0; startIdx < payload.length; startIdx += server.maxFrameLength) {
+					ws.send(payload.substr(startIdx, server.maxFrameLength));
+				}
 			} catch (e) {
 				log(`Send failed: ${e}`);
 			}
