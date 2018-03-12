@@ -3,6 +3,7 @@
   "version": "0.12.0",
   "description": "Simple Firebase Server",
   "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
   "bin": "./bin/firebase-server.js",
   "scripts": {
     "build": "rimraf dist && tsc",
