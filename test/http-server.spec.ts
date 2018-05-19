@@ -1,9 +1,6 @@
 import * as assert from 'assert';
+import * as firebase from 'firebase';
 import fetch from 'node-fetch';
-import * as proxyquire from 'proxyquire';
-
-// tslint:disable-next-line:no-var-requires
-const originalWebsocket = require('faye-websocket');
 
 const PORT = 44000;
 
@@ -11,23 +8,9 @@ const PORT = 44000;
 // it is initialized in `beforeEach()`.
 let authToken = null;
 
-// Firebase has strict requirements about the hostname format. So we provide
-// a dummy hostname and then change the URL to localhost inside the
-// faye-websocket's Client constructor.
-const firebase = proxyquire('firebase', {
-	'faye-websocket': {
-		'@global': true,
-		// tslint:disable-next-line
-		'Client': function (url) {
-			url = url.replace(/dummy\d+\.firebaseio\.test/i, 'localhost');
-			return new originalWebsocket.Client(url);
-		},
-	},
-});
-
 // Override Firebase client authentication mechanism. This allows us to set
 // custom auth tokens during tests, as well as authenticate anonymously.
-firebase.INTERNAL.factories.auth = (app, extendApp) => {
+(firebase as any).INTERNAL.factories.auth = (app, extendApp) => {
 	const listeners = [];
 	const token = authToken;
 	extendApp({
@@ -76,8 +59,8 @@ describe('Firebase HTTP Server', () => {
 	}
 
 	function newFirebaseClient(port) {
-		const name = `test-firebase-client-${sequentialConnectionId}`;
-		const url = `ws://dummy${sequentialConnectionId++}.firebaseio.test:${port}`;
+		const name = `test-firebase-http-${sequentialConnectionId++}`;
+		const url = `ws://localhost:${port}`;
 		const config = {
 			databaseURL: url,
 		};

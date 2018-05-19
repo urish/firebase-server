@@ -3,10 +3,10 @@
  */
 
 import * as assert from 'assert';
+import * as firebase from 'firebase';
 import TokenGenerator = require('firebase-token-generator');
 import * as http from 'http';
 import * as _ from 'lodash';
-import * as proxyquire from 'proxyquire';
 
 import FirebaseServer = require('../index');
 
@@ -19,23 +19,9 @@ const originalWebsocket = require('faye-websocket');
 // it is initialized in `beforeEach()`.
 let authToken = null;
 
-// Firebase has strict requirements about the hostname format. So we provide
-// a dummy hostname and then change the URL to localhost inside the
-// faye-websocket's Client constructor.
-const firebase = proxyquire('firebase', {
-	'faye-websocket': {
-		'@global': true,
-		// tslint:disable-next-line
-		'Client': function (url) {
-			url = url.replace(/dummy\d+\.firebaseio\.test/i, 'localhost');
-			return new originalWebsocket.Client(url);
-		},
-	},
-});
-
 // Override Firebase client authentication mechanism. This allows us to set
 // custom auth tokens during tests, as well as authenticate anonymously.
-firebase.INTERNAL.factories.auth = (app, extendApp) => {
+(firebase as any).INTERNAL.factories.auth = (app, extendApp) => {
 	const listeners = [];
 	const token = authToken;
 	extendApp({
@@ -88,8 +74,8 @@ describe('Firebase Server', () => {
 	}
 
 	function newFirebaseClient(port: number) {
-		const name = `test-firebase-client-${sequentialConnectionId}`;
-		const url = `ws://dummy${sequentialConnectionId++}.firebaseio.test:${port}`;
+		const name = `test-firebase-client-${sequentialConnectionId++}`;
+		const url = `ws://localhost:${port}`;
 		const config = {
 			databaseURL: url,
 		};
@@ -225,7 +211,7 @@ describe('Firebase Server', () => {
 
 		it('should split long messages correctly according to the maxFrameLength parameter', async () => {
 			const options = { port: sequentialPort, maxFrameLength: 10 };
-			const server = new FirebaseServer(options, `localhost:${sequentialPort}`);
+			server = new FirebaseServer(options, `localhost:${sequentialPort}`);
 			const client = newFirebaseClient(sequentialPort);
 			sequentialPort++;
 			await client.set({
@@ -439,7 +425,7 @@ describe('Firebase Server', () => {
 			const client = newFirebaseClient(port);
 			client.set({
 				foo: 'bar',
-			}, async (err) => {
+			}, async (err: Error & { code: string }) => {
 				assert.ok(err, 'set() should have returned an error');
 				assert.equal(err.code, 'PERMISSION_DENIED');
 				assert.deepEqual((await server.getValue()), {
@@ -462,7 +448,7 @@ describe('Firebase Server', () => {
 			const client = newFirebaseClient(port);
 			client.update({
 				foo: 'bar',
-			}, async (err) => {
+			}, async (err: Error & { code: string }) => {
 				assert.ok(err, 'update() should have returned an error');
 				assert.equal(err.code, 'PERMISSION_DENIED');
 				assert.deepEqual((await server.getValue()), {
@@ -590,7 +576,7 @@ describe('Firebase Server', () => {
 			});
 
 			const client = newFirebaseClient(port);
-			await client.child('states/KY').setPriority(100);
+			await (client.child('states/KY') as any).setPriority(100);
 			assert.deepEqual(await server.exportData(), {
 				states: {
 					AL: 'Alabama',
