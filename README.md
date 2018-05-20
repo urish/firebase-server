@@ -16,33 +16,38 @@ You can install firebase-server through npm:
 
 `npm install --save-dev firebase-server`
 
+or yarn:
+
+`yarn add -D firebase-server`
+
 Usage Example
 -------------
 
 ```js
-var FirebaseServer = require('firebase-server');
+const FirebaseServer = require('firebase-server');
 
-new FirebaseServer(5000, 'localhost.firebaseio.test', {
-	states: {
-		CA: 'California',
-		AL: 'Alabama',
-		KY: 'Kentucky'
-	}
+new FirebaseServer(5000, 'localhost', {
+  states: {
+    CA: 'California',
+    AL: 'Alabama',
+    KY: 'Kentucky'
+  }
 });
 ```
 
 After running this server, you can create a Firebase client instance that connects to it:
 
 ```js
-var client = new Firebase('ws://localhost.firebaseio.test:5000');
-client.on('value', function(snap) {
-	console.log('Got value: ', snap.val());
+import * as firebase from 'firebase/app';
+import 'firebase/database';
+
+const app = firebase.initializeApp({
+  databaseURL: `ws://localhost:5000`,
+});
+app.database().ref().on('value', (snap) => {
+  console.log('Got value: ', snap.val());
 });
 ```
-
-Don't forget to point the host `localhost.firebaseio.test` to your local IP address (in `/etc/hosts` or similar).
-
-For more information, read the [blog post in the offical Firebase blog](https://www.firebase.com/blog/2015-04-24-end-to-end-testing-firebase-server.html).
 
 ### Command Line Interface
 
