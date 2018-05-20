@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.0.0-rc.0 - 2018-05-20
+- Migrate project to TypeScript
+- Drop node 6.x support
+- Add `address()`, `getPort()` methods
+- `close()` method now returns a promise
+- Upgrade the Firebase JS Library to 5.x
+- Upgrade the `ws` library to 5.x
+- Split send payloads according to firebase's custom continuation format ([#115](https://github.com/urish/firebase-server/pull/115), contributed by [andrewparmet](https://github.com/andrewparmet))
+- Align 'now' in Targaryen with firebase-server time ([#112](https://github.com/urish/firebase-server/pull/112), contributed by [dotdoom](https://github.com/dotdoom))
+
 ## 0.12.0 - 2017-11-16
 - REST API support ([#95](https://github.com/urish/firebase-server/pull/95), contributed by [p-salido](https://github.com/p-salido))
 - Daemonization option ([#111](https://github.com/urish/firebase-server/pull/111), contributed by [p-salido](https://github.com/p-salido))
