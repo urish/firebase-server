@@ -104,12 +104,17 @@ options object with either `port` or `server` set. `name` is optional and is
 just used to report the server name to clients. `data` is the initial contents
 of the database.
 
+If you want the server to pick a free port for you, simply use the value `0` for the port. You can then get the
+assigned port number by calling the `getPort()` method on the returned server object.
+
 FirebaseServer instances have the following API:
 
 * `close(callback)` - Stops the server (closes the server socket) and then calls the callback
 * `getValue()` - Returns a promise that will be resolved with the current data on the server
 * `exportData()` - Returns a promise that will be resolved with the current data on the server, including priority values.
 	This is similar to [DataSnapshot.exportVal()](https://www.firebase.com/docs/web/api/datasnapshot/exportval.html).
+* `address()` - Returns the address the server is listening on
+* `port()` - Returns the port number the server is listening on
 * `setRules(rules)` - Sets the security rules for the server. Uses the [targaryen](https://github.com/goldibex/targaryen)
 	library for rule validation.
 * `setAuthSecret(secret)` - Sets the shared secret used for validating [Custom Authentication Tokens](https://www.firebase.com/docs/web/guide/login/custom.html).

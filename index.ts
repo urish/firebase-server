@@ -7,9 +7,9 @@
 import * as debug from 'debug';
 import * as firebase from 'firebase';
 import * as _ from 'lodash';
+import { AddressInfo } from 'net';
 import * as WebSocket from 'ws';
 import { Server as WebSocketServer } from 'ws';
-
 import { getFirebaseHash } from './lib/firebase-hash';
 import { HttpServer } from './lib/http-server';
 import { normalize, TokenValidator } from './lib/token-validator';
@@ -435,6 +435,15 @@ class FirebaseServer {
 
 	public exportData(ref?: firebase.database.Reference) {
 		return exportData(ref || this.baseRef);
+	}
+
+	public address(): string | AddressInfo {
+		return this.wss.address();
+	}
+
+	public getPort(): number {
+		const address = this.address();
+		return typeof address === 'string' ? 0 : address.port;
 	}
 
 	public close(callback?: () => void) {

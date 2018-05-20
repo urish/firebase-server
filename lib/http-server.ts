@@ -1,4 +1,5 @@
 import * as debug from 'debug';
+import * as firebase from 'firebase/app';
 import * as http from 'http';
 import * as url from 'url';
 

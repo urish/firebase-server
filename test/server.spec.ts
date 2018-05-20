@@ -7,13 +7,9 @@ import * as firebase from 'firebase';
 import TokenGenerator = require('firebase-token-generator');
 import * as http from 'http';
 import * as _ from 'lodash';
+import { AddressInfo } from 'net';
 
 import FirebaseServer = require('../index');
-
-const PORT = 46000;
-
-// tslint:disable-next-line:no-var-requires
-const originalWebsocket = require('faye-websocket');
 
 // this is the auth token that will be sent to the server during tests.
 // it is initialized in `beforeEach()`.
@@ -45,8 +41,7 @@ let authToken = null;
 const tokenGenerator = new TokenGenerator('goodSecret');
 
 describe('Firebase Server', () => {
-	let server;
-	let sequentialPort = PORT;
+	let server: FirebaseServer;
 	let sequentialConnectionId = 0;
 	const apps = [];
 
@@ -69,8 +64,8 @@ describe('Firebase Server', () => {
 	});
 
 	function newFirebaseServer(data?: object) {
-		server = new FirebaseServer(sequentialPort, `localhost:${sequentialPort}`, data);
-		return sequentialPort++;
+		server = new FirebaseServer(0, `localhost:${sequentialConnectionId}`, data);
+		return (server.address() as AddressInfo).port;
 	}
 
 	function newFirebaseClient(port: number) {
@@ -86,9 +81,8 @@ describe('Firebase Server', () => {
 
 	it('should successfully use an existing http.Server', async () => {
 		const httpServer = http.createServer();
-		httpServer.listen(sequentialPort);
-		const fbServer = new FirebaseServer({ server: httpServer }, `localhost:${sequentialPort}`);
-		sequentialPort++;
+		httpServer.listen(0);
+		const fbServer = new FirebaseServer({ server: httpServer }, `localhost:${sequentialConnectionId}`);
 		await fbServer.close();
 		await new Promise((resolve) => httpServer.close(resolve));
 	});
@@ -96,14 +90,13 @@ describe('Firebase Server', () => {
 	it('should reject server and rest options together', async () => {
 		const httpServer = http.createServer();
 		assert.throws(() => {
-			const fbServer = new FirebaseServer({ server: httpServer, rest: true }, `localhost:${sequentialPort}`);
+			const fbServer = new FirebaseServer({ server: httpServer, rest: true }, `localhost:${sequentialConnectionId}`);
 			fbServer.close(() => 0);
 		}, Error, 'Incompatible options: server, rest');
 	});
 
 	it('should successfully use port within options', async () => {
-		const fbServer = new FirebaseServer({ port: sequentialPort }, `localhost:${sequentialPort}`);
-		sequentialPort++;
+		const fbServer = new FirebaseServer({ port: 0 }, `localhost:${sequentialConnectionId}`);
 		await fbServer.close();
 	});
 
@@ -210,10 +203,9 @@ describe('Firebase Server', () => {
 		});
 
 		it('should split long messages correctly according to the maxFrameLength parameter', async () => {
-			const options = { port: sequentialPort, maxFrameLength: 10 };
-			server = new FirebaseServer(options, `localhost:${sequentialPort}`);
-			const client = newFirebaseClient(sequentialPort);
-			sequentialPort++;
+			const options = { port: 0, maxFrameLength: 10 };
+			server = new FirebaseServer(options, `localhost:${sequentialConnectionId}`);
+			const client = newFirebaseClient((server.address() as AddressInfo).port);
 			await client.set({
 				foo: _.times(2000, String),
 			});

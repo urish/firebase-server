@@ -1,8 +1,8 @@
 import * as assert from 'assert';
-import * as firebase from 'firebase';
+import * as firebase from 'firebase/app';
 import fetch from 'node-fetch';
 
-const PORT = 44000;
+import FirebaseServer = require('../index');
 
 // this is the auth token that will be sent to the server during tests.
 // it is initialized in `beforeEach()`.
@@ -31,11 +31,8 @@ let authToken = null;
 	});
 };
 
-import FirebaseServer = require('../index');
-
 describe('Firebase HTTP Server', () => {
-	let server;
-	let sequentialPort = PORT;
+	let server: FirebaseServer;
 	let sequentialConnectionId = 0;
 	let app = null;
 
@@ -54,8 +51,8 @@ describe('Firebase HTTP Server', () => {
 	});
 
 	function newFirebaseServer(data) {
-		server = new FirebaseServer({ port: sequentialPort, rest: true }, `localhost:${sequentialPort}`, data);
-		return sequentialPort++;
+		server = new FirebaseServer({ port: 0, rest: true }, `localhost:${sequentialConnectionId}`, data);
+		return server.getPort();
 	}
 
 	function newFirebaseClient(port) {
