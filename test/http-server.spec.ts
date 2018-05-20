@@ -4,41 +4,10 @@ import fetch from 'node-fetch';
 
 import FirebaseServer = require('../index');
 
-// this is the auth token that will be sent to the server during tests.
-// it is initialized in `beforeEach()`.
-let authToken = null;
-
-// Override Firebase client authentication mechanism. This allows us to set
-// custom auth tokens during tests, as well as authenticate anonymously.
-(firebase as any).INTERNAL.factories.auth = (app, extendApp) => {
-	const listeners = [];
-	const token = authToken;
-	extendApp({
-		INTERNAL: {
-			getToken() {
-				if (!token) {
-					return Promise.resolve(null);
-				}
-				listeners.forEach((listener) => {
-					listener(token);
-				});
-				return Promise.resolve({ accessToken: token, expirationTime: 1566618502074 });
-			},
-			addAuthTokenListener(listener: () => void) {
-				listeners.push(listener);
-			},
-		},
-	});
-};
-
 describe('Firebase HTTP Server', () => {
 	let server: FirebaseServer;
 	let sequentialConnectionId = 0;
 	let app = null;
-
-	beforeEach(() => {
-		authToken = null;
-	});
 
 	afterEach(() => {
 		if (server) {
