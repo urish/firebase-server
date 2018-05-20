@@ -446,14 +446,20 @@ class FirebaseServer {
 		return typeof address === 'string' ? 0 : address.port;
 	}
 
-	public close(callback?: () => void) {
-		let cb;
+	public async close(callback: (err?: Error) => void = (() => 0)) {
 		if (this.https) {
-			cb = () => this.https.close(callback);
-		} else {
-			cb = callback;
+			await new Promise((resolve) => this.https.close(resolve));
 		}
-		this.wss.close(cb);
+		return new Promise<void>((resolve, reject) => {
+			this.wss.close((err) => {
+				callback(err);
+				if (err) {
+					reject(err);
+				} else {
+					resolve();
+				}
+			});
+		});
 	}
 
 	public setTime(newTime: number | null) {
