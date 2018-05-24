@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.0-rc.2 - 2018-05-28
+- fix #123: Cannot run server v1.0.0-rc.1
+
 ## 1.0.0-rc.1 - 2018-05-20
 - docs: update usage example in README
 
