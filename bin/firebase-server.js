@@ -45,7 +45,7 @@ cli.main(function (args, options) { // eslint-disable-line max-statements,comple
 		debug.enable('firebase-server*');
 	}
 
-	const FirebaseServer = require('../index.js');
+	const FirebaseServer = require('../dist/index.js');
 
 	let rawData;
 	if (options.file) {
