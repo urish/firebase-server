@@ -7,6 +7,10 @@ const fs = require('fs');
 const path = require('path');
 const cli = require('cli');
 const debug = require('debug');
+const pkg = require('../package.json');
+
+cli.enable('version');
+cli.setApp(pkg.name, pkg.version);
 
 cli.parse({
 	rest: ['e', 'Enable REST HTTP API'],
@@ -19,7 +23,8 @@ cli.parse({
 	data: ['d', 'JSON data to bootstrap the server with', 'string', '{}'],
 	file: ['f', 'JSON file to bootstrap the server with', 'file'],
 	rules: ['r', 'JSON file with security rules to load', 'file'],
-	secret: ['s', 'Shared client auth token secret', 'string']
+	secret: ['s', 'Shared client auth token secret', 'string'],
+	version: [false, 'Output the version number'],
 });
 
 cli.main(function (args, options) { // eslint-disable-line max-statements,complexity
