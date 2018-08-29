@@ -1,7 +1,7 @@
 /*
- * firebase-server 1.0.0-rc.2
+ * firebase-server 1.0.0
  * License: MIT.
- * Copyright (C) 2013, 2014, 2015, 2016, 2017, 2018 Uri Shaked and contributors.
+ * Copyright (C) 2013, 2014, 2015, 2016, 2017, 2018, Uri Shaked and contributors.
  */
 
 import * as debug from 'debug';

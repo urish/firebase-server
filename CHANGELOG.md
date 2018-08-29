@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.0 - 2018-08-29
+- chore: upgrade dependencies (lodash, debug), addresses CVE-2017-16137, CVE-2018-3721
+- feat #130: add `--version` cli option
+
 ## 1.0.0-rc.2 - 2018-05-28
 - fix #123: Cannot run server v1.0.0-rc.1
 
