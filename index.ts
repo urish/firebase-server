@@ -204,7 +204,7 @@ class FirebaseServer {
 		function replaceServerTimestamp(value: number, data: object|number|string) {
 			if (_.isEqual(data, firebase.database.ServerValue.TIMESTAMP)) {
 				return value;
-			} else if (_.isObject(data)) {
+			} else if (_.isObject(data) && typeof data === 'object') {
 				return _.mapValues(data, replaceServerTimestamp.bind(this, value));
 			} else {
 				return data;
