@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.1 - 2018-11-29
+- fix #133: cli package vulnerability
+
 ## 1.0.0 - 2018-08-29
 - chore: upgrade dependencies (lodash, debug), addresses CVE-2017-16137, CVE-2018-3721
 - feat #130: add `--version` cli option
