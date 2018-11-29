@@ -56,7 +56,7 @@
   },
   "dependencies": {
     "@types/node": "^9.3.0",
-    "cli": "0.11.3",
+    "cli": "^1.0.1",
     "daemon": "^1.1.0",
     "debug": "^3.1.0",
     "firebase": ">= 5.0.0",
