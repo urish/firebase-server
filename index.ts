@@ -71,7 +71,7 @@ class FirebaseServer {
 	private tokenValidator;
 	private maxFrameLength;
 
-	constructor(portOrOptions, private name = 'mock.firebase.server', data = null) {
+	constructor(portOrOptions, private name = 'mock.firebase.server', data?: {[key: string]: any}) {
 		// Firebase is more than just a "database" now; the "realtime database" is
 		// just one of many services provided by a Firebase "App" container.
 		// The Firebase library must be initialized with an App, and that app
