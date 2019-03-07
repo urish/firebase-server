@@ -13,6 +13,7 @@ import { Server as WebSocketServer } from 'ws';
 import { getFirebaseHash } from './lib/firebase-hash';
 import { HttpServer } from './lib/http-server';
 import { normalize, TokenValidator } from './lib/token-validator';
+import { paginateRef } from './lib/paginate-ref';
 
 // tslint:disable:no-var-requires
 const targaryen = require('targaryen');
@@ -237,7 +238,7 @@ class FirebaseServer {
 			server.targaryen = result.newDatabase;
 		}
 
-		function handleListen(requestId: number, normalizedPath: INormalizedPath, fbRef: firebase.database.Reference) {
+		function handleListen(requestId: number, normalizedPath: INormalizedPath, fbRef: firebase.database.Reference, q) {
 			const path = normalizedPath.path;
 			log(`Client listen ${path}`);
 
@@ -249,7 +250,7 @@ class FirebaseServer {
 			}
 
 			let sendOk = true;
-			fbRef.on('value', (snap) => {
+			paginateRef(fbRef, q).on('value', (snap) => {
 				if (snap) {
 					// BUG: tryRead() here, and if it throws, cancel the listener.
 					// See https://github.com/urish/firebase-server/pull/100#issuecomment-323509408
@@ -394,7 +395,7 @@ class FirebaseServer {
 				const requestId = parsed.d.r;
 				const fbRef = path.path ? this.baseRef.child(path.path) : this.baseRef;
 				if (parsed.d.a === 'l' || parsed.d.a === 'q') {
-					handleListen(requestId, path, fbRef);
+					handleListen(requestId, path, fbRef, parsed.d.b.q);
 				}
 				if (parsed.d.a === 'm') {
 					handleUpdate(requestId, path, fbRef, parsed.d.b.d);
