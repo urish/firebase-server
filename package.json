@@ -1,6 +1,6 @@
 {
   "name": "@deepqai/firebase-server",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Simple Firebase Server",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -16,7 +16,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/urish/firebase-server"
+    "url": "https://github.com/deepqai/firebase-server/"
   },
   "keywords": [
     "firebase",
@@ -25,9 +25,9 @@
   "author": "Uri Shaked",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/urish/firebase-server/issues"
+    "url": "https://github.com/deepqai/firebase-server//issues"
   },
-  "homepage": "https://github.com/urish/firebase-server",
+  "homepage": "https://github.com/deepqai/firebase-server/",
   "files": [
     "dist",
     "bin/firebase-server.js"

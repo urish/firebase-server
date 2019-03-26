@@ -5,11 +5,11 @@ export const paginateRef = (ref, q) => {
 			const value = q[key];
 			switch (key) {
 				case "sp": {
-					ref = ref.startAt(value);
+					ref = q["sn"] ? ref.startAt(value, q["sn"]) : ref.startAt(value);
 					break;
 				}
 				case "ep": {
-					ref = ref.endAt(value);
+					ref = q["en"] ? ref.endAt(value, q["en"]) : ref.endAt(value);
 					break;
 				}
 				case "i": {
