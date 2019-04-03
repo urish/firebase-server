@@ -1,87 +1,72 @@
 {
-  "name": "@deepqai/firebase-server",
-  "version": "1.0.3",
-  "description": "Simple Firebase Server",
-  "main": "dist/index.js",
-  "typings": "dist/index.d.ts",
-  "bin": "./bin/firebase-server.js",
-  "scripts": {
-    "build": "rimraf dist && tsc",
-    "prepublish": "yarn build",
-    "test": "yarn lint && yarn cover",
-    "cover": "nyc mocha",
-    "debug": "mocha",
-    "watch": "mocha -w",
-    "lint": "tslint -p ."
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/deepqai/firebase-server/"
-  },
-  "keywords": [
-    "firebase",
-    "server"
-  ],
-  "author": "Uri Shaked",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/deepqai/firebase-server//issues"
-  },
-  "homepage": "https://github.com/deepqai/firebase-server/",
-  "files": [
-    "dist",
-    "bin/firebase-server.js"
-  ],
-  "devDependencies": {
-    "@types/debug": "0.0.30",
-    "@types/firebase-token-generator": "^2.0.28",
-    "@types/jwt-simple": "^0.5.33",
-    "@types/lodash": "^4.0.0",
-    "@types/lolex": "^2.1.1",
-    "@types/mocha": "^2.2.46",
-    "@types/node-fetch": "^1.6.7",
-    "@types/ws": "^5.0.0",
-    "bluebird": "2.10.2",
-    "coveralls": "3.0.0",
-    "firebase-token-generator": "^2.0.0",
-    "lolex": "^2.3.1",
-    "mocha": "2.3.3",
-    "node-fetch": "^1.7.3",
-    "nyc": "^11.4.1",
-    "rimraf": "^2.6.2",
-    "source-map-support": "^0.5.0",
-    "ts-node": "^4.1.0",
-    "tslint": "^5.9.1",
-    "typescript": "^2.6.2"
-  },
-  "dependencies": {
-    "@types/node": "^9.3.0",
-    "cli": "^1.0.1",
-    "daemon": "^1.1.0",
-    "debug": "^3.1.0",
-    "firebase": ">= 5.0.0",
-    "jwt-simple": "0.3.1",
-    "lodash": "^4.17.5",
-    "targaryen": "3.0.1",
-    "ws": "^5.0.0"
-  },
-  "engines": {
-    "node": ">=8.0.0"
-  },
-  "nyc": {
-    "extension": [
-      ".js",
-      ".ts"
-    ],
-    "require": [
-      "ts-node/register"
-    ],
-    "reporter": [
-      "text-summary",
-      "lcov",
-      "html"
-    ],
-    "sourceMap": true,
-    "instrument": true
-  }
+	"name": "@deepqai/firebase-server",
+	"version": "1.0.4",
+	"description": "Simple Firebase Server",
+	"main": "dist/index.js",
+	"typings": "dist/index.d.ts",
+	"bin": "./bin/firebase-server.js",
+	"scripts": {
+		"build": "rimraf dist && tsc",
+		"prepublish": "yarn build",
+		"test": "yarn lint && yarn cover",
+		"cover": "nyc mocha",
+		"debug": "mocha",
+		"watch": "mocha -w",
+		"lint": "tslint -p ."
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/deepqai/firebase-server/"
+	},
+	"keywords": ["firebase", "server"],
+	"author": "Uri Shaked",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/deepqai/firebase-server//issues"
+	},
+	"homepage": "https://github.com/deepqai/firebase-server/",
+	"files": ["dist", "bin/firebase-server.js"],
+	"devDependencies": {
+		"@types/debug": "0.0.30",
+		"@types/firebase-token-generator": "^2.0.28",
+		"@types/jwt-simple": "^0.5.33",
+		"@types/lodash": "^4.0.0",
+		"@types/lolex": "^2.1.1",
+		"@types/mocha": "^2.2.46",
+		"@types/node-fetch": "^1.6.7",
+		"@types/ws": "^5.0.0",
+		"bluebird": "2.10.2",
+		"coveralls": "3.0.0",
+		"firebase-token-generator": "^2.0.0",
+		"lolex": "^2.3.1",
+		"mocha": "2.3.3",
+		"node-fetch": "^1.7.3",
+		"nyc": "^11.4.1",
+		"rimraf": "^2.6.2",
+		"source-map-support": "^0.5.0",
+		"ts-node": "^4.1.0",
+		"tslint": "^5.9.1",
+		"typescript": "^2.6.2"
+	},
+	"dependencies": {
+		"@types/node": "^9.3.0",
+		"cli": "^1.0.1",
+		"daemon": "^1.1.0",
+		"debug": "^3.1.0",
+		"firebase": ">= 5.0.0",
+		"jwt-simple": "0.3.1",
+		"lodash": "^4.17.5",
+		"targaryen": "3.0.1",
+		"ws": "^5.0.0"
+	},
+	"engines": {
+		"node": ">=8.0.0"
+	},
+	"nyc": {
+		"extension": [".js", ".ts"],
+		"require": ["ts-node/register"],
+		"reporter": ["text-summary", "lcov", "html"],
+		"sourceMap": true,
+		"instrument": true
+	}
 }
