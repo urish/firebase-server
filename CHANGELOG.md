@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.2 - 2019-05-08
+- fix #138: security vulnerability affecting `jwt-simple` package
+
 ## 1.0.1 - 2018-11-29
 - fix #133: cli package vulnerability
 
