@@ -20,7 +20,7 @@ or yarn:
 
 `yarn add -D firebase-server`
 
-Usage Example
+Usage examples
 -------------
 
 ```js
@@ -44,9 +44,34 @@ import 'firebase/database';
 const app = firebase.initializeApp({
   databaseURL: `ws://localhost:5000`,
 });
+
 app.database().ref().on('value', (snap) => {
   console.log('Got value: ', snap.val());
 });
+```
+
+### Setup with global test hooks
+
+In the case of Mocha, you'd do something like the example below.
+
+```js
+// => e.g. global-test-hooks.js
+const FirebaseServer = require("firebase-server");
+
+let firebaseServer;
+
+before(() => {
+   firebaseServer = new FirebaseServer(5000, "localhost");
+});
+
+after(async () => {
+   await firebaseServer.close();
+});
+```
+
+```
+// => require the file with the --file flag
+mocha --file /path/to/global-test-hooks.js
 ```
 
 ### Command Line Interface
