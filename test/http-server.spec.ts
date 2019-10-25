@@ -37,12 +37,12 @@ describe('Firebase HTTP Server', () => {
 	describe('get', () => {
 		context('root json', () => {
 			context('empty dataset', () => {
-				it('returns empty hash', () => {
+				it('returns null', () => {
 					const port = newFirebaseServer({});
 					return fetch(`http://localhost:${port}/.json`)
 						.then((resp) => resp.json())
 						.then((payload) => {
-							assert.deepEqual(payload, {});
+							assert.deepEqual(payload, null);
 						});
 				});
 			});
