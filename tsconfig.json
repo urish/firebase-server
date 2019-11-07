@@ -18,7 +18,7 @@
   },
   "include": [
     "index.ts",
-    "service-worker.d.ts",
+    "dom-types.d.ts",
     "lib/**/*.ts"
   ]
 }
