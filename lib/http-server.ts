@@ -14,7 +14,7 @@ export function HttpServer(port: number, address: undefined, db: firebase.databa
 
 	function handleReadRequest(request: http.IncomingMessage, response: http.ServerResponse, path: string) {
 		db.ref(path).once('value').then((snapshot) => {
-			writeResponse(response, snapshot.val() || {});
+			writeResponse(response, snapshot.val());
 		});
 	}
 
