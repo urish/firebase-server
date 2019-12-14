@@ -1,26 +1,33 @@
 import * as debug from 'debug';
 import * as firebase from 'firebase/app';
 import * as http from 'http';
+import * as https from 'https';
 import * as url from 'url';
 
 const log = debug('firebase-server');
 
-export function HttpServer(port: number, address: undefined, db: firebase.database.Database) {
-	function writeResponse(response: http.ServerResponse, payload: object | null) {
+export function HttpServer(
+	port: number,
+	address: undefined,
+	db: firebase.database.Database,
+	sslCert?: string,
+	sslKey?: string) {
+
+	function writeResponse(response: any, payload: object | null) {
 		response.writeHead(200, { 'Content-Type': 'application/json' });
 		response.write(JSON.stringify(payload));
 		response.end();
 	}
 
-	function handleReadRequest(request: http.IncomingMessage, response: http.ServerResponse, path: string) {
+	function handleReadRequest(request: any, response: any, path: string) {
 		db.ref(path).once('value').then((snapshot) => {
 			writeResponse(response, snapshot.val());
 		});
 	}
 
 	function handleWriteRequest(
-		request: http.IncomingMessage,
-		response: http.ServerResponse,
+		request: any,
+		response: any,
 		path: string,
 		writeMethod: string,
 	) {
@@ -42,12 +49,25 @@ export function HttpServer(port: number, address: undefined, db: firebase.databa
 		});
 	}
 
-	function handleDeleteRequest(request: http.IncomingMessage, response: http.ServerResponse, path: string) {
+	function handleDeleteRequest(request: any, response: any, path: string) {
 		db.ref(path).remove();
 		writeResponse(response, null);
 	}
 
-	const server = http.createServer((request, response) => {
+	// var protocol = http;
+	// // if (sslCert && sslKey) {
+	// // 	protocol = https;
+	// // }
+	function createServer(cert: string, key: string, cb: (request: any, response: any) => void) {
+		if (cert && key) {
+			const args = {cert, key};
+			return https.createServer(args, cb);
+		} else {
+			return http.createServer(cb);
+		}
+	}
+
+	const server = createServer(sslCert, sslKey, (request, response) => {
 		const urlParts = url.parse(request.url!);
 		let path = urlParts.pathname;
 		if (!path || !path.match(/\.json$/)) {
