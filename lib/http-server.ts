@@ -54,11 +54,7 @@ export function HttpServer(
 		writeResponse(response, null);
 	}
 
-	// var protocol = http;
-	// // if (sslCert && sslKey) {
-	// // 	protocol = https;
-	// // }
-	function createServer(cert: string, key: string, cb: (request: any, response: any) => void) {
+	function createServer(cb: (request: any, response: any) => void, cert?: string, key?: string) {
 		if (cert && key) {
 			const args = {cert, key};
 			return https.createServer(args, cb);
@@ -67,7 +63,7 @@ export function HttpServer(
 		}
 	}
 
-	const server = createServer(sslCert, sslKey, (request, response) => {
+	const server = createServer((request, response) => {
 		const urlParts = url.parse(request.url!);
 		let path = urlParts.pathname;
 		if (!path || !path.match(/\.json$/)) {
@@ -94,7 +90,7 @@ export function HttpServer(
 				response.writeHead(400);
 				response.end();
 		}
-	});
+	}, sslCert, sslKey);
 
 	server.listen(port, address);
 	return server;
