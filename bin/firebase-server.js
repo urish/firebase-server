@@ -24,6 +24,8 @@ cli.parse({
 	file: ['f', 'JSON file to bootstrap the server with', 'file'],
 	rules: ['r', 'JSON file with security rules to load', 'file'],
 	secret: ['s', 'Shared client auth token secret', 'string'],
+	cert: ['c', 'SSL certificate file', 'file'],
+	cert: ['k', 'SSL key file', 'file'],
 	version: [false, 'Output the version number'],
 });
 
@@ -35,14 +37,14 @@ cli.main(function (args, options) { // eslint-disable-line max-statements,comple
 
 	if (options.daemon) {
 		// Work around https://github.com/indexzero/daemon.node/issues/41
-		require('daemon')({cwd: '/'});
+		require('daemon')({ cwd: '/' });
 	}
 
 	if (options.pid) {
-		fs.writeFile(options.pid, process.pid.toString(), () => {});
+		fs.writeFile(options.pid, process.pid.toString(), () => { });
 
 		process.on('exit', code => {
-			fs.unlinkSync(options.pid, () => {}); // eslint-disable-line no-sync
+			fs.unlinkSync(options.pid, () => { }); // eslint-disable-line no-sync
 		});
 	}
 
@@ -82,10 +84,27 @@ cli.main(function (args, options) { // eslint-disable-line max-statements,comple
 		}
 	}
 
+	var sslCert, sslKey
+	if (options.cert || options.key) {
+		if (options.cert && options.key) {
+			try {
+				sslCert = fs.readFileSync(path.resolve(process.cwd(), options.cert)); // eslint-disable-line no-sync
+				sslKey = fs.readFileSync(path.resolve(process.cwd(), options.key)); // eslint-disable-line no-sync
+			} catch (e) {
+				this.output(e);
+				this.fatal('Provided ssl certificate or key file could not be read.');
+			}
+		} else {
+			this.fatal('Must provide both an ssl key and an ssl certificate file.');
+		}
+	}
+
 	const server = new FirebaseServer({
 		port: options.port,
 		address: options.address,
-		rest: options.rest
+		rest: options.rest,
+		sslCert,
+		sslKey
 	}, options.name, data); // eslint-disable-line no-new
 
 	if (rules) {
