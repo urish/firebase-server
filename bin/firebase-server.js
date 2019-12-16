@@ -102,10 +102,8 @@ cli.main(function (args, options) { // eslint-disable-line max-statements,comple
 	const server = new FirebaseServer({
 		port: options.port,
 		address: options.address,
-		rest: options.rest,
-		sslCert,
-		sslKey
-	}, options.name, data); // eslint-disable-line no-new
+		rest: options.rest
+	}, options.name, data, sslCert, sslKey); // eslint-disable-line no-new
 
 	if (rules) {
 		server.setRules(rules);

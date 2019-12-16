@@ -13,6 +13,8 @@ import { Server as WebSocketServer } from 'ws';
 import { getFirebaseHash } from './lib/firebase-hash';
 import { HttpServer } from './lib/http-server';
 import { normalize, TokenValidator } from './lib/token-validator';
+import * as https from 'https';
+
 
 // tslint:disable:no-var-requires
 const targaryen = require('targaryen');
@@ -89,9 +91,6 @@ class FirebaseServer {
 		const config = {
 			databaseURL: 'ws://fakeserver.firebaseio.test',
 		};
-		if (sslCert && sslKey) {
-			config.databaseURL.replace('ws:', 'wss:');
-		}
 
 		this.app = firebase.initializeApp(config, appName);
 		this.app.database().goOffline();
@@ -107,6 +106,7 @@ class FirebaseServer {
 			},
 		}, data);
 
+		const useSSL = sslCert && sslKey
 		let options;
 		let port;
 		if (typeof portOrOptions === 'object') {
@@ -147,7 +147,29 @@ class FirebaseServer {
 			this.maxFrameLength = 16384;
 		}
 
-		this.wss = new WebSocketServer(options);
+		if (useSSL) {
+			const server = https.createServer({cert:sslCert, key:sslKey, rejectUnauthorized: false}).listen(port);
+			this.wss = new WebSocketServer({ server});
+			// const ws = new WebSocket(`wss://localhost:${port}`, {
+			// 	rejectUnauthorized: false
+			// });
+			// wss.on('connection', function connection(ws) {
+			// 	ws.on('message', function message(msg) {
+			// 	  console.log(msg);
+			// 	});
+			//   });
+			// server.listen(function listening() {
+			// // const ws = new WebSocket(`wss://localhost:${port}`, {
+			// // 	rejectUnauthorized: false
+			// // });
+			// // ws.on('open', function open() {
+			// // 	ws.send('All glory to WebSockets!');
+			// // });
+			// });
+
+		} else {
+			this.wss = new WebSocketServer(options);
+		}
 
 		this.tokenValidator = TokenValidator(null);
 
