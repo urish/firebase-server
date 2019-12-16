@@ -148,25 +148,14 @@ class FirebaseServer {
 		}
 
 		if (useSSL) {
-			const server = https.createServer({cert:sslCert, key:sslKey, rejectUnauthorized: false}).listen(port);
+			
+			const server = https.createServer({key:sslKey, cert:sslCert}, function (req, res) {
+					res.writeHead(200);
+					res.end("hello world\n");
+				})
+				.listen(port);
 			this.wss = new WebSocketServer({ server});
-			// const ws = new WebSocket(`wss://localhost:${port}`, {
-			// 	rejectUnauthorized: false
-			// });
-			// wss.on('connection', function connection(ws) {
-			// 	ws.on('message', function message(msg) {
-			// 	  console.log(msg);
-			// 	});
-			//   });
-			// server.listen(function listening() {
-			// // const ws = new WebSocket(`wss://localhost:${port}`, {
-			// // 	rejectUnauthorized: false
-			// // });
-			// // ws.on('open', function open() {
-			// // 	ws.send('All glory to WebSockets!');
-			// // });
-			// });
-
+			log(`Using SSL`);
 		} else {
 			this.wss = new WebSocketServer(options);
 		}
