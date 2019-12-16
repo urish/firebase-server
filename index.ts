@@ -71,7 +71,7 @@ class FirebaseServer {
 	private tokenValidator;
 	private maxFrameLength;
 
-	constructor(portOrOptions, private name = 'mock.firebase.server', data = null, sslCert?:string, sslKey?:string) {
+	constructor(portOrOptions, private name = 'mock.firebase.server', data = null, sslCert?: string, sslKey?: string) {
 		// Firebase is more than just a "database" now; the "realtime database" is
 		// just one of many services provided by a Firebase "App" container.
 		// The Firebase library must be initialized with an App, and that app
@@ -90,8 +90,8 @@ class FirebaseServer {
 			databaseURL: 'ws://fakeserver.firebaseio.test',
 		};
 		if (sslCert && sslKey) {
-			config.databaseURL.replace('ws:','wss:')
-		};
+			config.databaseURL.replace('ws:', 'wss:');
+		}
 
 		this.app = firebase.initializeApp(config, appName);
 		this.app.database().goOffline();

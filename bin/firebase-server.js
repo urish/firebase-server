@@ -25,7 +25,7 @@ cli.parse({
 	rules: ['r', 'JSON file with security rules to load', 'file'],
 	secret: ['s', 'Shared client auth token secret', 'string'],
 	cert: ['c', 'SSL certificate file', 'file'],
-	cert: ['k', 'SSL key file', 'file'],
+	key: ['k', 'SSL key file', 'file'],
 	version: [false, 'Output the version number'],
 });
 
