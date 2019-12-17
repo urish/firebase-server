@@ -125,6 +125,15 @@ For more information, run:
 
 	firebase-server -h
 
+To run it using ssl encryption:
+
+	firebase-server.js -p 5555 -c ssl/certificate.pem -k ssl/key.pem 
+
+_Note: This will automatically start the rest server. 
+
+_Note: This comes with a self signed certificate that was generated with the command
+	`openssl req -newkey rsa:2048 -nodes -keyout key.pem -x509 -days 365 -out certificate.pem`
+
 ### FirebaseServer methods
 
 The constructor signature is `FirebaseServer(portOrOptions, name, data)` where

@@ -147,10 +147,6 @@ class FirebaseServer {
 		}
 
 		if (useSSL) {
-			// const server = https.createServer({key: sslKey, cert: sslCert}, (req, res) => {
-			// 	res.writeHead(200);
-			// 	res.end('hello world\n');
-			// }).listen(port);
 			this.wss = new WebSocketServer(options);
 			log(`Using SSL`);
 		} else {
