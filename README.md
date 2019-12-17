@@ -129,11 +129,13 @@ To run it using ssl encryption:
 
 	firebase-server.js -p 5555 -c ssl/certificate.pem -k ssl/key.pem 
 
-_Note: This will automatically start the rest server. 
-
-_Note: This comes with a self signed certificate that was generated with the command
+_Notes: 
+ * This will automatically start the rest server too. 
+ * The websocket prefix changes from `ws://` to `wss://` for the secure ssl version.
+ * This comes with a self signed certificate that was generated with the command
 	`openssl req -newkey rsa:2048 -nodes -keyout key.pem -x509 -days 365 -out certificate.pem`
-
+ * Using a real LetsEncrypt certificate would look something like this `sudo node bin/firebase-server.js -k /etc/letsencrypt/live/fu.com/privkey.pem -c /etc/letsencrypt/live/fu.com/cert.pem`
+ 
 ### FirebaseServer methods
 
 The constructor signature is `FirebaseServer(portOrOptions, name, data)` where
