@@ -6,6 +6,7 @@
 
 import * as debug from 'debug';
 import * as firebase from 'firebase';
+// import * as https from 'https';
 import * as _ from 'lodash';
 import { AddressInfo } from 'net';
 import * as WebSocket from 'ws';
@@ -13,8 +14,6 @@ import { Server as WebSocketServer } from 'ws';
 import { getFirebaseHash } from './lib/firebase-hash';
 import { HttpServer } from './lib/http-server';
 import { normalize, TokenValidator } from './lib/token-validator';
-import * as https from 'https';
-
 
 // tslint:disable:no-var-requires
 const targaryen = require('targaryen');
@@ -106,7 +105,7 @@ class FirebaseServer {
 			},
 		}, data);
 
-		const useSSL = sslCert && sslKey
+		const useSSL = sslCert && sslKey;
 		let options;
 		let port;
 		if (typeof portOrOptions === 'object') {
@@ -130,7 +129,7 @@ class FirebaseServer {
 
 		if (options.server && options.rest) {
 			throw new Error('Incompatible options: server, rest');
-		} else if (options.rest) {
+		} else if (options.rest || useSSL) {
 			this.https = HttpServer(port, options.address, this.app.database(), sslCert, sslKey);
 			options = { server: this.https };
 		}
@@ -148,13 +147,11 @@ class FirebaseServer {
 		}
 
 		if (useSSL) {
-			
-			const server = https.createServer({key:sslKey, cert:sslCert}, function (req, res) {
-					res.writeHead(200);
-					res.end("hello world\n");
-				})
-				.listen(port);
-			this.wss = new WebSocketServer({ server});
+			// const server = https.createServer({key: sslKey, cert: sslCert}, (req, res) => {
+			// 	res.writeHead(200);
+			// 	res.end('hello world\n');
+			// }).listen(port);
+			this.wss = new WebSocketServer(options);
 			log(`Using SSL`);
 		} else {
 			this.wss = new WebSocketServer(options);
