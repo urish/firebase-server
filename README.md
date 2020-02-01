@@ -3,7 +3,7 @@ firebase-server
 
 Firebase Web Socket Protocol Server. Useful for emulating the Firebase server in tests.
 
-Copyright (C) 2013, 2014, 2015, 2016, 2017, 2018, 2019, Uri Shaked and contributors
+Copyright (C) 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, Uri Shaked and contributors
 
 [![Build Status](https://travis-ci.org/urish/firebase-server.png?branch=master)](https://travis-ci.org/urish/firebase-server)
 [![Coverage Status](https://coveralls.io/repos/urish/firebase-server/badge.png)](https://coveralls.io/r/urish/firebase-server)

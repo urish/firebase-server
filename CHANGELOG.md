@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.1.0 - 2020-02-01
+- fix #136: upgrade targaryen to 3.1.0
+- fix #142: respond with null instead of {} for empty path
+- docs #140: Add global test hooks example to README.md
+- chore(deps): upgrade ws to 7.x
+- chore(deps): bump firebase from 6.0.1 to 7.2.3
+- chore(deps): bump mixin-deep from 1.3.1 to 1.3.2
+- chore(deps): bump handlebars from 4.0.11 to 4.5.1
+- chore(deps): bump lodash from 4.17.10 to 4.17.13
+- chore(deps): bump extend from 3.0.1 to 3.0.2
+- chore(deps): bump js-yaml from 3.11.0 to 3.13.1
+
 ## 1.0.2 - 2019-05-08
 - fix #138: security vulnerability affecting `jwt-simple` package
 
