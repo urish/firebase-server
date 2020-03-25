@@ -1,6 +1,6 @@
 # Project Deprecated!
 
-> This project has reached its end-of-life, and will no longer be maintained. For information about the official alternative from the Firebase team, have a look at the [Firebase Local Emulators Migration Guide](doc/firebase-emulators.md).
+> This project has reached its end-of-life, and will no longer be maintained. For information about the official alternative from the Firebase team, have a look at the [Firebase Local Emulators Migration Guide](docs/firebase-emulators.md).
 
 Moving forward, new features will not be added, and only security-related bugfixes will be released. 
 
